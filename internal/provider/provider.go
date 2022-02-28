@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	dvc_mgmt "github.com/devcyclehq/go-mgmt-sdk"
+	dvc_server "github.com/devcyclehq/go-server-sdk"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,8 +18,11 @@ type provider struct {
 	// communicate with the upstream service. Resource and DataSource
 	// implementations can then make calls using this client.
 	//
-	// TODO: If appropriate, implement upstream provider SDK or HTTP client.
-	// client vendorsdk.ExampleClient
+	MgmtClient   *dvc_mgmt.APIClient
+	ServerClient *dvc_server.DVCClient
+
+	MgmtClientToken   string
+	ServerClientToken string
 
 	// configured is set to true at the end of the Configure method.
 	// This can be used in Resource and DataSource implementations to verify
@@ -32,7 +37,9 @@ type provider struct {
 
 // providerData can be used to store data from the Terraform configuration.
 type providerData struct {
-	Example types.String `tfsdk:"example"`
+	ServerSDKToken  types.String `tfsdk:"server_sdk_token"`
+	ManagementToken types.String `tfsdk:"management_token"`
+	ProjectId       types.String `tfsdk:"project_id"`
 }
 
 func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
@@ -44,11 +51,10 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 		return
 	}
 
-	// Configuration values are now available.
-	// if data.Example.Null { /* ... */ }
-
-	// If the upstream provider SDK or HTTP client requires configuration, such
-	// as authentication or logging, this is a great opportunity to do so.
+	p.MgmtClient = dvc_mgmt.NewAPIClient(dvc_mgmt.NewConfiguration())
+	p.ServerClient = dvc_server.NewDVCClient()
+	p.MgmtClientToken = data.ManagementToken.Value
+	p.ServerClientToken = data.ServerSDKToken.Value
 
 	p.configured = true
 }
@@ -65,6 +71,7 @@ func (p *provider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSou
 	}, nil
 }
 
+// TODO: Pass in provider config values for configuration of the SDKs.
 func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
@@ -72,6 +79,19 @@ func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostic
 				MarkdownDescription: "Example provider attribute",
 				Optional:            true,
 				Type:                types.StringType,
+			},
+			"server": {
+				Type:                nil,
+				Attributes:          nil,
+				Description:         "",
+				MarkdownDescription: "",
+				Required:            false,
+				Optional:            false,
+				Computed:            false,
+				Sensitive:           false,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
 			},
 		},
 	}, nil
