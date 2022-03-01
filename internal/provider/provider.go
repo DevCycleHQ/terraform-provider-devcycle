@@ -70,7 +70,7 @@ func (p *provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceT
 
 func (p *provider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
 	return map[string]tfsdk.DataSourceType{
-		"scaffolding_example": exampleDataSourceType{},
+		"devcycle_project": projectDataSourceType{},
 	}, nil
 }
 
@@ -83,18 +83,13 @@ func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostic
 				Optional:            true,
 				Type:                types.StringType,
 			},
-			"server": {
-				Type:                nil,
-				Attributes:          nil,
+			"server_sdk_token": {
+				Type:                types.StringType,
 				Description:         "",
 				MarkdownDescription: "",
-				Required:            false,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				DeprecationMessage:  "",
+				Required:            true,
+				Sensitive:           true,
 				Validators:          nil,
-				PlanModifiers:       nil,
 			},
 		},
 	}, nil
