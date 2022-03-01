@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -18,14 +20,61 @@ func (t variableResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 		MarkdownDescription: "Example resource",
 
 		Attributes: map[string]tfsdk.Attribute{
-			"configurable_attribute": {
-				MarkdownDescription: "Example configurable attribute",
+			"name": {
+				MarkdownDescription: "Variable name",
+				Required:            true,
+				Type:                types.StringType,
+			},
+
+			"description": {
+				MarkdownDescription: "Variable description",
+				Required:            true,
+				Type:                types.StringType,
+			},
+
+			"key": {
+				MarkdownDescription: "Variable key",
+				Required:            true,
+				Type:                types.StringType,
+			},
+			"feature_key": {
+				MarkdownDescription: "Feature that this variable is attached to",
+				Required:            true,
+				Type:                types.StringType,
+			},
+			"project_key": {
+				MarkdownDescription: "Project key that this feature and variable is attached to",
+				Required:            true,
+				Type:                types.StringType,
+			},
+			"type": {
+				MarkdownDescription: "Variable datatype",
+				Required:            true,
+				Type:                types.StringType,
+			},
+			"stringvalue": {
+				MarkdownDescription: "Variable value if the type is string",
 				Optional:            true,
 				Type:                types.StringType,
 			},
+			"jsonvalue": {
+				MarkdownDescription: "Variable value if the type is json",
+				Optional:            true,
+				Type:                types.StringType,
+			},
+			"boolvalue": {
+				MarkdownDescription: "Variable value if the type is boolean",
+				Optional:            true,
+				Type:                types.BoolType,
+			},
+			"numvalue": {
+				MarkdownDescription: "Variable value if the type is number",
+				Optional:            true,
+				Type:                types.NumberType,
+			},
 			"id": {
 				Computed:            true,
-				MarkdownDescription: "Example identifier",
+				MarkdownDescription: "Variable ID",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.UseStateForUnknown(),
 				},
@@ -44,8 +93,14 @@ func (t variableResourceType) NewResource(ctx context.Context, in tfsdk.Provider
 }
 
 type variableResourceData struct {
-	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
-	Id                    types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Description  types.String `tfsdk:"description"`
+	Key          types.String `tfsdk:"key"`
+	FeatureId    types.String `tfsdk:"featureId"`
+	ProjectId    types.String `tfsdk:"projectId"`
+	Type         types.String `tfsdk:"type"`
+	DefaultValue *interface{} `tfsdk:"default_value"`
+	Id           types.String `tfsdk:"id"`
 }
 
 type variableResource struct {
@@ -62,17 +117,26 @@ func (r variableResource) Create(ctx context.Context, req tfsdk.CreateResourceRe
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// example, err := d.provider.client.CreateExample(...)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create example, got error: %s", err))
-	//     return
-	// }
-
-	// For the purposes of this example code, hardcoding a response value to
-	// save into the Terraform state.
-	data.Id = types.String{Value: "example-id"}
+	variable, httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerCreate(ctx, devcyclem.CreateVariableDto{
+		Name:         data.Name.Value,
+		Description:  data.Description.Value,
+		Key:          data.Key.Value,
+		Feature:      data.FeatureId.Value,
+		Type_:        data.Type.Value,
+		DefaultValue: data.DefaultValue,
+	}, data.ProjectId.Value)
+	if err != nil || httpResponse.StatusCode != 200 {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
+		return
+	}
+	data.Id.Value = variable.Id
+	data.Key.Value = variable.Key
+	data.Name.Value = variable.Name
+	data.Description.Value = variable.Description
+	data.FeatureId.Value = variable.Feature
+	data.ProjectId.Value = variable.Project
+	data.Type.Value = variable.Type_
+	data.DefaultValue = variable.DefaultValue
 
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
@@ -93,13 +157,19 @@ func (r variableResource) Read(ctx context.Context, req tfsdk.ReadResourceReques
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// example, err := d.provider.client.ReadExample(...)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
+	variable, httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
+	if err != nil || httpResponse.StatusCode != 200 {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
+		return
+	}
+	data.Id.Value = variable.Id
+	data.Key.Value = variable.Key
+	data.Name.Value = variable.Name
+	data.Description.Value = variable.Description
+	data.FeatureId.Value = variable.Feature
+	data.ProjectId.Value = variable.Project
+	data.Type.Value = variable.Type_
+	data.DefaultValue = variable.DefaultValue
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -114,14 +184,25 @@ func (r variableResource) Update(ctx context.Context, req tfsdk.UpdateResourceRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	variable, httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerUpdate(ctx, devcyclem.UpdateVariableDto{
+		Name:        data.Name.Value,
+		Description: data.Description.Value,
+		Key:         data.Key.Value,
+		Feature:     data.FeatureId.Value,
+	}, data.Id.Value, data.ProjectId.Value)
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// example, err := d.provider.client.UpdateExample(...)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
-	//     return
-	// }
+	if err != nil || httpResponse.StatusCode != 200 {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
+		return
+	}
+	data.Id.Value = variable.Id
+	data.Key.Value = variable.Key
+	data.Name.Value = variable.Name
+	data.Description.Value = variable.Description
+	data.FeatureId.Value = variable.Feature
+	data.ProjectId.Value = variable.Project
+	data.Type.Value = variable.Type_
+	data.DefaultValue = variable.DefaultValue
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -137,13 +218,11 @@ func (r variableResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRe
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// example, err := d.provider.client.DeleteExample(...)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete example, got error: %s", err))
-	//     return
-	// }
+	httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
+	if err != nil || httpResponse.StatusCode != 200 {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
+		return
+	}
 
 	resp.State.RemoveResource(ctx)
 }

@@ -3,8 +3,9 @@ module github.com/hashicorp/terraform-provider-scaffolding-framework
 go 1.17
 
 require (
-	github.com/devcyclehq/go-mgmt-sdk v0.0.2
+	github.com/antihax/optional v1.0.0
 	github.com/devcyclehq/go-server-sdk v1.0.0
+	github.com/devcyclehq/go-mgmt-sdk v0.0.5
 	github.com/hashicorp/terraform-plugin-docs v0.5.1
 	github.com/hashicorp/terraform-plugin-framework v0.5.0
 	github.com/hashicorp/terraform-plugin-go v0.5.0
@@ -19,7 +20,6 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
-	github.com/antihax/optional v1.0.0 // indirect
 	github.com/apparentlymart/go-textseg v1.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 // indirect

@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	go_mgmt_sdk "github.com/devcyclehq/go-mgmt-sdk"
+	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -98,7 +98,7 @@ func (r projectResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 		return
 	}
 
-	project, httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerCreate(ctx, go_mgmt_sdk.CreateProjectDto{
+	project, httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerCreate(ctx, devcyclem.CreateProjectDto{
 		Name:        data.Name.Value,
 		Key:         data.Key.Value,
 		Description: data.Description.Value,
@@ -163,7 +163,7 @@ func (r projectResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 		return
 	}
 
-	project, httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerUpdate(ctx, go_mgmt_sdk.UpdateProjectDto{
+	project, httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerUpdate(ctx, devcyclem.UpdateProjectDto{
 		Name:        data.Name.Value,
 		Key:         data.Key.Value,
 		Description: data.Description.Value,

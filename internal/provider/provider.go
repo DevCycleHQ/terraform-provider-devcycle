@@ -61,7 +61,10 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 
 func (p *provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
 	return map[string]tfsdk.ResourceType{
-		"scaffolding_example": exampleResourceType{},
+		"devcycle_project":     projectResourceType{},
+		"devcycle_environment": environmentResourceType{},
+		"devcycle_feature":     featureResourceType{},
+		"devcycle_variable":    variableResourceType{},
 	}, nil
 }
 
