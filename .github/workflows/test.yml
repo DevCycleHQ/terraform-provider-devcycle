@@ -60,7 +60,7 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
-          DEVCYCLE_CLIENT_ID: "{{ secrets.DEVCYCLE_CLIENT_ID }}"
-          DEVCYCLE_CLIENT_SECRET: "{{ secrets.DEVCYCLE_CLIENT_SECRET }}"
+          DEVCYCLE_CLIENT_ID: ${{ secrets.DEVCYCLE_CLIENT_ID }}
+          DEVCYCLE_CLIENT_SECRET: ${{ secrets.DEVCYCLE_CLIENT_SECRET }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10
