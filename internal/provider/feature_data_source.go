@@ -17,7 +17,11 @@ func (t featureDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 		MarkdownDescription: "Example data source",
 
 		Attributes: map[string]tfsdk.Attribute{
-			"key": {},
+			"key": {
+				Type:        types.StringType,
+				Description: "Example data source attribute",
+				Required:    true,
+			},
 			"id": {
 				MarkdownDescription: "Example identifier",
 				Type:                types.StringType,

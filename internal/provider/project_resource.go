@@ -22,17 +22,17 @@ func (t projectResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 		Attributes: map[string]tfsdk.Attribute{
 			"description": {
 				MarkdownDescription: "Description of the project",
-				Optional:            false,
+				Required:            true,
 				Type:                types.StringType,
 			},
 			"name": {
 				MarkdownDescription: "Name of the project",
-				Optional:            false,
+				Required:            true,
 				Type:                types.StringType,
 			},
 			"key": {
 				MarkdownDescription: "Project key, usually the lowercase, kebab case name of the project",
-				Optional:            false,
+				Required:            true,
 				Type:                types.StringType,
 			},
 			"id": {

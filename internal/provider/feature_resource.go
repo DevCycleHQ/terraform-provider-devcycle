@@ -32,7 +32,6 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 				Required:            true,
 				Type:                types.StringType,
 			},
-
 			"key": {
 				MarkdownDescription: "Feature key",
 				Required:            true,
