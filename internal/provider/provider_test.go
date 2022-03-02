@@ -19,7 +19,7 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 
 func testAccPreCheck(t *testing.T) {
 	// TODO: setup environment variables to configure the project and auth tokens. Need to create a separate project for acceptance tests.
-	// You can add code here to run prior to any test case execution, for example assertions
-	// about the appropriate environment variables being set are common to see in a pre-check
-	// function.
+	t.Setenv("DEVCYCLE_CLIENT_ID", "")
+	t.Setenv("DEVCYCLE_CLIENT_SECRET", "")
+	t.Setenv("DEVCYCLE_SERVER_TOKEN", "")
 }

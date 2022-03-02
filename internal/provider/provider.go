@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	dvc_oauth "github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
+	"os"
 
 	dvc_mgmt "github.com/devcyclehq/go-mgmt-sdk"
 	dvc_server "github.com/devcyclehq/go-server-sdk"
@@ -44,6 +46,7 @@ type providerData struct {
 
 func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
 	var data providerData
+
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
@@ -51,10 +54,34 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 		return
 	}
 
-	p.MgmtClient = dvc_mgmt.NewAPIClient(dvc_mgmt.NewConfiguration())
+	if data.ManagementToken.Value != "" {
+		p.MgmtClientToken = data.ManagementToken.Value
+	} else {
+		accessToken := os.Getenv("DEVCYCLE_ACCESS_TOKEN")
+		clientId := os.Getenv("DEVCYCLE_CLIENT_ID")
+		clientSecret := os.Getenv("DEVCYCLE_CLIENT_SECRET")
+		if accessToken == "" && clientId != "" && clientSecret != "" {
+			auth, err := dvc_oauth.GetAuthToken(clientId, clientSecret)
+			if err != nil {
+				p.configured = false
+				return
+			}
+			p.MgmtClientToken = auth.AccessToken
+		} else {
+			p.MgmtClientToken = accessToken
+		}
+	}
+	if data.ServerSDKToken.Value != "" {
+		p.ServerClientToken = data.ServerSDKToken.Value
+	} else {
+		p.ServerClientToken = os.Getenv("DEVCYCLE_SERVER_SDK_TOKEN")
+	}
+
+	config := dvc_mgmt.NewConfiguration()
+	config.DefaultHeader["Authorization"] = fmt.Sprintf("Bearer %s", p.MgmtClientToken)
+	p.MgmtClient = dvc_mgmt.NewAPIClient(config)
+
 	p.ServerClient = dvc_server.NewDVCClient()
-	p.MgmtClientToken = data.ManagementToken.Value
-	p.ServerClientToken = data.ServerSDKToken.Value
 
 	p.configured = true
 }
@@ -70,26 +97,38 @@ func (p *provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceT
 
 func (p *provider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
 	return map[string]tfsdk.DataSourceType{
-		"devcycle_project": projectDataSourceType{},
+		"devcycle_project":     projectDataSourceType{},
+		"devcycle_environment": variableDataSourceType{},
+		"devcycle_feature":     featureDataSourceType{},
 	}, nil
 }
 
-// TODO: Pass in provider config values for configuration of the SDKs.
 func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
-			"example": {
-				MarkdownDescription: "Example provider attribute",
+			"client_id": {
+				MarkdownDescription: "API Authentication Client ID",
 				Optional:            true,
+				Sensitive:           true,
+				Type:                types.StringType,
+			},
+			"client_secret": {
+				MarkdownDescription: "API Authentication Client Secret",
+				Optional:            true,
+				Sensitive:           true,
+				Type:                types.StringType,
+			},
+			"access_token": {
+				MarkdownDescription: "API Authentication Access Token",
+				Optional:            true,
+				Sensitive:           true,
 				Type:                types.StringType,
 			},
 			"server_sdk_token": {
 				Type:                types.StringType,
-				Description:         "",
-				MarkdownDescription: "",
-				Required:            true,
+				MarkdownDescription: "Server SDK Token",
 				Sensitive:           true,
-				Validators:          nil,
+				Optional:            true,
 			},
 		},
 	}, nil
