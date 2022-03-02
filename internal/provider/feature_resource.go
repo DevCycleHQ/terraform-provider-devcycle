@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
-	"math/big"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -155,7 +153,7 @@ type featureResourceData struct {
 	Type        types.String                   `tfsdk:"type"`
 	Tags        []string                       `tfsdk:"tags"`
 	Variations  []featureResourceDataVariation `tfsdk:"variations"`
-	Variables   []featureResourceDataVariable  `tfsdk:"variables"`
+	Variables   []string                       `tfsdk:"variables"`
 }
 
 func (t featureResourceData) variationToSDK() []devcyclem.FeatureVariationDto {
@@ -173,66 +171,44 @@ func (t featureResourceData) variationToSDK() []devcyclem.FeatureVariationDto {
 
 func (t featureResourceData) variablesToSDK() []devcyclem.CreateVariableDto {
 	var variables []devcyclem.CreateVariableDto
-	for _, variable := range t.Variables {
-
-		nvar := devcyclem.CreateVariableDto{
-			Name:        variable.Name.Value,
-			Description: variable.Description.Value,
-			Key:         variable.Key.Value,
-			Feature:     variable.FeatureKey.Value,
-			Type_:       variable.Type.Value,
-		}
-
-		switch variable.Type.Value {
-		case "string":
-			var x interface{} = variable.DefaultStringValue.Value
-			nvar.DefaultValue = &x
-			break
-		case "json":
-			var x interface{} = variable.DefaultJsonValue.Value
-			nvar.DefaultValue = &x
-			break
-		case "boolean":
-			var x interface{} = variable.DefaultBoolValue.Value
-			nvar.DefaultValue = &x
-			break
-		case "number":
-			var x interface{} = variable.DefaultNumberValue.Value
-			nvar.DefaultValue = &x
-			break
-		}
-
-		variables = append(variables, nvar)
+	for range t.Variables {
+		//TODO:
+		//nvar := devcyclem.CreateVariableDto{
+		//	Name:        variable.Name.Value,
+		//	Description: variable.Description.Value,
+		//	Key:         variable.Key.Value,
+		//	Feature:     variable.FeatureKey.Value,
+		//	Type_:       variable.Type.Value,
+		//}
+		//
+		//switch variable.Type.Value {
+		//case "string":
+		//	var x interface{} = variable.DefaultStringValue.Value
+		//	nvar.DefaultValue = &x
+		//	break
+		//case "json":
+		//	var x interface{} = variable.DefaultJsonValue.Value
+		//	nvar.DefaultValue = &x
+		//	break
+		//case "boolean":
+		//	var x interface{} = variable.DefaultBoolValue.Value
+		//	nvar.DefaultValue = &x
+		//	break
+		//case "number":
+		//	var x interface{} = variable.DefaultNumberValue.Value
+		//	nvar.DefaultValue = &x
+		//	break
+		//}
+		//
+		//variables = append(variables, nvar)
 	}
 	return variables
 }
 
-func variableToTF(vars []devcyclem.Variable) []featureResourceDataVariable {
-	var variables []featureResourceDataVariable
+func variableToTF(vars []devcyclem.Variable) []string {
+	var variables []string
 	for _, variable := range vars {
-		nvar := featureResourceDataVariable{
-			Name:        types.String{Value: variable.Name},
-			Description: types.String{Value: variable.Description},
-			Key:         types.String{Value: variable.Key},
-			FeatureKey:  types.String{Value: variable.Feature},
-			Type:        types.String{Value: variable.Type_},
-		}
-
-		switch variable.Type_ {
-		case "string":
-			nvar.DefaultStringValue = types.String{Value: (variable.DefaultValue).(string)}
-			break
-		case "json":
-			nvar.DefaultJsonValue = types.String{Value: (variable.DefaultValue).(string)}
-			break
-		case "boolean":
-			nvar.DefaultBoolValue = types.Bool{Value: (variable.DefaultValue).(bool)}
-			break
-		case "number":
-			f := (variable.DefaultValue).(big.Float)
-			nvar.DefaultNumberValue = types.Number{Value: &f}
-		}
-		variables = append(variables, nvar)
+		variables = append(variables, variable.Id)
 	}
 	return variables
 }

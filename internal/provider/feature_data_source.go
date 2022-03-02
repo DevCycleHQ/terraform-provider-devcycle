@@ -76,50 +76,9 @@ func (t featureDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 				}, tfsdk.ListNestedAttributesOptions{}),
 			},
 			"variables": {
-				MarkdownDescription: "Feature variables",
+				MarkdownDescription: "Feature variable ids",
 				Computed:            true,
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"key": {
-						Type:                types.StringType,
-						Computed:            true,
-						MarkdownDescription: "Variable key",
-					},
-					"name": {
-						Type:                types.StringType,
-						Computed:            true,
-						MarkdownDescription: "Variable name",
-					},
-					"feature_key": {
-						Type:                types.StringType,
-						Computed:            true,
-						MarkdownDescription: "Feature that this variable is attached to",
-					},
-					"type": {
-						Type:                types.StringType,
-						Computed:            true,
-						MarkdownDescription: "Variable datatype",
-					},
-					"default_string_value": {
-						Type:                types.StringType,
-						Computed:            true,
-						MarkdownDescription: "Variable default value if the type is string",
-					},
-					"default_json_value": {
-						Type:                types.StringType,
-						Computed:            true,
-						MarkdownDescription: "Variable default value if the type is json",
-					},
-					"default_bool_value": {
-						Type:                types.BoolType,
-						Computed:            true,
-						MarkdownDescription: "Variable default value if the type is bool",
-					},
-					"default_number_value": {
-						Type:                types.NumberType,
-						Computed:            true,
-						MarkdownDescription: "Variable default value if the type is number",
-					},
-				}, tfsdk.ListNestedAttributesOptions{}),
+				Type:                types.ListType{ElemType: types.StringType},
 			},
 			"id": {
 				Computed:            true,
@@ -150,7 +109,7 @@ type featureDataSourceData struct {
 	ProjectKey  types.String                   `tfsdk:"project_key"`
 	Type        types.String                   `tfsdk:"type"`
 	Variations  []featureResourceDataVariation `tfsdk:"variations"`
-	Variables   []featureResourceDataVariable  `tfsdk:"variables"`
+	Variables   []string                       `tfsdk:"variables"`
 }
 
 type featureDataSource struct {
