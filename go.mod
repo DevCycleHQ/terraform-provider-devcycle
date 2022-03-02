@@ -3,7 +3,7 @@ module github.com/hashicorp/terraform-provider-scaffolding-framework
 go 1.17
 
 require (
-	github.com/devcyclehq/go-mgmt-sdk v0.0.5
+	github.com/devcyclehq/go-mgmt-sdk v0.0.6
 	github.com/devcyclehq/go-server-sdk v1.0.0
 	github.com/hashicorp/terraform-plugin-docs v0.5.1
 	github.com/hashicorp/terraform-plugin-framework v0.5.0

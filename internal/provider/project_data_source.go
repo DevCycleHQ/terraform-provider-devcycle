@@ -25,6 +25,24 @@ func (t projectDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 				MarkdownDescription: "Project Id",
 				Optional:            true,
 				Type:                types.StringType,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
+			},
+			"name": {
+				MarkdownDescription: "Project name",
+				Computed:            true,
+				Type:                types.StringType,
+			},
+			"description": {
+				MarkdownDescription: "Project description",
+				Computed:            true,
+				Type:                types.StringType,
+			},
+			"organization": {
+				MarkdownDescription: "Project org id",
+				Computed:            true,
+				Type:                types.StringType,
 			},
 		},
 	}, nil
@@ -44,9 +62,6 @@ type projectDataSourceData struct {
 	Description  types.String `tfsdk:"description"`
 	Id           types.String `tfsdk:"id"`
 	Organization types.String `tfsdk:"organization"`
-	CreatedBy    types.String `tfsdk:"createdBy"`
-	CreatedAt    types.String `tfsdk:"createdAt"`
-	UpdatedAt    types.String `tfsdk:"updatedAt"`
 }
 
 type projectDataSource struct {
@@ -72,10 +87,8 @@ func (d projectDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceReq
 	data.Name = types.String{Value: project.Name}
 	data.Key = types.String{Value: project.Key}
 	data.Organization = types.String{Value: project.Organization}
-	data.CreatedBy = types.String{Value: project.CreatedBy}
-	data.CreatedAt = types.String{Value: project.CreatedAt.String()}
-	data.UpdatedAt = types.String{Value: project.UpdatedAt.String()}
 	data.Id = types.String{Value: project.Id}
+	data.Description = types.String{Value: project.Description}
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)

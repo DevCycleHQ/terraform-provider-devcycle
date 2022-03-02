@@ -98,20 +98,13 @@ type environmentResourceData struct {
 	Type        types.String                    `tfsdk:"type"`
 	Settings    environmentResourceDataSettings `tfsdk:"settings"`
 	ProjectId   types.String                    `tfsdk:"project_id"`
-	SDKKeys     []environmentResourceDataSDKKey `tfsdk:"sdkKeys"`
-}
-type environmentResourceDataSDKKey struct {
-	Type types.String `tfsdk:"type"`
-	Key  types.String `tfsdk:"key"`
+	SDKKeys     []string                        `tfsdk:"sdkKeys"`
 }
 
-func sdkKeyConvert(t string, keys []devcyclem.ApiKey) []environmentResourceDataSDKKey {
-	var sdkKeys []environmentResourceDataSDKKey
+func sdkKeyConvert(keys []devcyclem.ApiKey) []string {
+	var sdkKeys []string
 	for _, sdkKey := range keys {
-		sdkKeys = append(sdkKeys, environmentResourceDataSDKKey{
-			Type: types.String{Value: t},
-			Key:  types.String{Value: sdkKey.Key},
-		})
+		sdkKeys = append(sdkKeys, sdkKey.Key)
 	}
 	return sdkKeys
 }
@@ -166,9 +159,9 @@ func (r environmentResource) Create(ctx context.Context, req tfsdk.CreateResourc
 	data.Type.Value = environment.Type_
 	data.ProjectId.Value = environment.Project
 	data.Settings.AppIconURI.Value = environment.Settings.AppIconURI
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("mobile", environment.SdkKeys.Mobile)...)
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("server", environment.SdkKeys.Server)...)
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("client", environment.SdkKeys.Client)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Mobile)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Server)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Client)...)
 
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
@@ -203,9 +196,9 @@ func (r environmentResource) Read(ctx context.Context, req tfsdk.ReadResourceReq
 	data.Type.Value = environment.Type_
 	data.ProjectId.Value = environment.Project
 	data.Settings.AppIconURI.Value = environment.Settings.AppIconURI
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("mobile", environment.SdkKeys.Mobile)...)
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("server", environment.SdkKeys.Server)...)
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("client", environment.SdkKeys.Client)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Mobile)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Server)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Client)...)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -242,9 +235,9 @@ func (r environmentResource) Update(ctx context.Context, req tfsdk.UpdateResourc
 	data.Type.Value = environment.Type_
 	data.ProjectId.Value = environment.Project
 	data.Settings.AppIconURI.Value = environment.Settings.AppIconURI
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("mobile", environment.SdkKeys.Mobile)...)
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("server", environment.SdkKeys.Server)...)
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("client", environment.SdkKeys.Client)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Mobile)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Server)...)
+	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Client)...)
 
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog

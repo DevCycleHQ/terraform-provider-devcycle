@@ -15,7 +15,7 @@ func TestAccEnvironmentDataSource(t *testing.T) {
 			{
 				Config: testAccEnvironmentDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.devcycle_environment.test", "key", "example-id"),
+					resource.TestCheckResourceAttr("data.devcycle_environment.test", "id", "621fc3113bb541e45c20e6dc"),
 				),
 			},
 		},
@@ -24,7 +24,7 @@ func TestAccEnvironmentDataSource(t *testing.T) {
 
 const testAccEnvironmentDataSourceConfig = `
 data "devcycle_environment" "test" {
-  key = "example-id"
-  project_id = "example-project-id"
+  key = "development"
+  project_key = "terraform-provider-testing"
 }
 `

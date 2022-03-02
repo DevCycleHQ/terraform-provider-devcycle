@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"math/big"
+	"strconv"
 )
 
 type variableDataSourceType struct{}
@@ -17,19 +19,67 @@ func (t variableDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 
 		Attributes: map[string]tfsdk.Attribute{
 			"key": {
-				MarkdownDescription: "Project key, usually the lowercase, kebab case name of the project",
+				MarkdownDescription: "Variable key",
 				Required:            true,
+				Type:                types.StringType,
+			},
+			"feature_id": {
+				MarkdownDescription: "Feature ID",
+				Computed:            true,
 				Type:                types.StringType,
 			},
 			"project_id": {
 				MarkdownDescription: "Project ID",
+				Computed:            true,
+				Type:                types.StringType,
+			},
+			"project_key": {
+				MarkdownDescription: "Project key",
 				Required:            true,
 				Type:                types.StringType,
 			},
 			"id": {
-				MarkdownDescription: "Project Id",
-				Optional:            true,
+				MarkdownDescription: "Variable Id",
+				Computed:            true,
 				Type:                types.StringType,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
+			},
+			"name": {
+				MarkdownDescription: "Variable name",
+				Computed:            true,
+				Type:                types.StringType,
+			},
+			"description": {
+				MarkdownDescription: "Variable description",
+				Computed:            true,
+				Type:                types.StringType,
+			},
+			"type": {
+				MarkdownDescription: "Variable type",
+				Computed:            true,
+				Type:                types.StringType,
+			},
+			"stringvalue": {
+				MarkdownDescription: "Variable value if the type is string",
+				Computed:            true,
+				Type:                types.StringType,
+			},
+			"jsonvalue": {
+				MarkdownDescription: "Variable value if the type is json",
+				Computed:            true,
+				Type:                types.StringType,
+			},
+			"boolvalue": {
+				MarkdownDescription: "Variable value if the type is boolean",
+				Computed:            true,
+				Type:                types.BoolType,
+			},
+			"numvalue": {
+				MarkdownDescription: "Variable value if the type is number",
+				Computed:            true,
+				Type:                types.NumberType,
 			},
 		},
 	}, nil
@@ -44,15 +94,18 @@ func (t variableDataSourceType) NewDataSource(ctx context.Context, in tfsdk.Prov
 }
 
 type variableDataSourceData struct {
-	Id          types.String                    `tfsdk:"id"`
-	Key         types.String                    `tfsdk:"key"`
-	Name        types.String                    `tfsdk:"name"`
-	Description types.String                    `tfsdk:"description"`
-	Color       types.String                    `tfsdk:"color"`
-	Type        types.String                    `tfsdk:"type"`
-	Settings    environmentResourceDataSettings `tfsdk:"settings"`
-	ProjectId   types.String                    `tfsdk:"project_id"`
-	SDKKeys     []environmentResourceDataSDKKey `tfsdk:"sdkKeys"`
+	Name               types.String `tfsdk:"name"`
+	Description        types.String `tfsdk:"description"`
+	Key                types.String `tfsdk:"key"`
+	FeatureId          types.String `tfsdk:"feature_id"`
+	ProjectId          types.String `tfsdk:"project_id"`
+	ProjectKey         types.String `tfsdk:"project_key"`
+	Type               types.String `tfsdk:"type"`
+	DefaultValueBool   types.Bool   `tfsdk:"boolvalue"`
+	DefaultValueString types.String `tfsdk:"stringvalue"`
+	DefaultValueJson   types.String `tfsdk:"jsonvalue"`
+	DefaultValueNum    types.Number `tfsdk:"numvalue"`
+	Id                 types.String `tfsdk:"id"`
 }
 
 type variableDataSource struct {
@@ -68,24 +121,37 @@ func (d variableDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	environment, httpResponse, err := d.provider.MgmtClient.EnvironmentsApi.EnvironmentsControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
+	variable, httpResponse, err := d.provider.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, data.Key.Value, data.ProjectKey.Value)
 	if err != nil || httpResponse.StatusCode != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read environment, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read variable, got error: %s", err))
+		resp.Diagnostics.AddError("HTTP Logs:", fmt.Sprintf("%v", httpResponse.Request))
 		return
 	}
+	data.Id = types.String{Value: variable.Id}
+	data.Key = types.String{Value: variable.Key}
+	data.Name = types.String{Value: variable.Name}
+	data.Description = types.String{Value: variable.Description}
+	data.Type = types.String{Value: variable.Type_}
+	data.FeatureId = types.String{Value: variable.Feature}
+	data.ProjectId = types.String{Value: variable.Project}
 
-	data.Id.Value = environment.Id
-	data.Key.Value = environment.Key
-	data.Name.Value = environment.Name
-	data.Description.Value = environment.Description
-	data.Color.Value = environment.Color
-	data.Type.Value = environment.Type_
-	data.ProjectId.Value = environment.Project
-	data.Settings.AppIconURI.Value = environment.Settings.AppIconURI
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("mobile", environment.SdkKeys.Mobile)...)
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("server", environment.SdkKeys.Server)...)
-	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert("client", environment.SdkKeys.Client)...)
-
+	switch variable.Type_ {
+	case "String":
+		data.DefaultValueString = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
+		break
+	case "JSON":
+		data.DefaultValueJson = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
+		break
+	case "Boolean":
+		fmt.Println(variable.DefaultValue)
+		out, _ := strconv.ParseBool(fmt.Sprintf("%v", variable.DefaultValue))
+		data.DefaultValueBool = types.Bool{Value: out}
+		break
+	case "Number":
+		out, _, _ := big.ParseFloat(fmt.Sprintf("%v", variable.DefaultValue), 64, 0, big.ToZero)
+		data.DefaultValueNum = types.Number{Value: out}
+		break
+	}
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 }

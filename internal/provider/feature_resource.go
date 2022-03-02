@@ -128,7 +128,7 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 				Computed:            true,
 				MarkdownDescription: "Feature ID",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
-					tfsdk.UseStateForUnknown(),
+					tfsdk.RequiresReplace(),
 				},
 				Type: types.StringType,
 			},
@@ -149,7 +149,8 @@ type featureResourceData struct {
 	Name        types.String                   `tfsdk:"name"`
 	Key         types.String                   `tfsdk:"key"`
 	Description types.String                   `tfsdk:"description"`
-	ProjectId   types.String                   `tfsdk:"projectId"`
+	ProjectId   types.String                   `tfsdk:"project_id"`
+	ProjectKey  types.String                   `tfsdk:"project_key"`
 	Source      types.String                   `tfsdk:"source"`
 	Type        types.String                   `tfsdk:"type"`
 	Tags        []string                       `tfsdk:"tags"`
@@ -161,9 +162,10 @@ func (t featureResourceData) variationToSDK() []devcyclem.FeatureVariationDto {
 	var variations []devcyclem.FeatureVariationDto
 	for _, variation := range t.Variations {
 		variations = append(variations, devcyclem.FeatureVariationDto{
-			Key:       variation.Key.Value,
-			Name:      variation.Name.Value,
-			Variables: variation.Variables,
+			Key:  variation.Key.Value,
+			Name: variation.Name.Value,
+			// TODO: Convert type to map[string]interface{}.
+			//Variables: variation.Variables,
 		})
 	}
 	return variations
@@ -218,16 +220,16 @@ func variableToTF(vars []devcyclem.Variable) []featureResourceDataVariable {
 
 		switch variable.Type_ {
 		case "string":
-			nvar.DefaultStringValue = types.String{Value: (*variable.DefaultValue).(string)}
+			nvar.DefaultStringValue = types.String{Value: (variable.DefaultValue).(string)}
 			break
 		case "json":
-			nvar.DefaultJsonValue = types.String{Value: (*variable.DefaultValue).(string)}
+			nvar.DefaultJsonValue = types.String{Value: (variable.DefaultValue).(string)}
 			break
 		case "boolean":
-			nvar.DefaultBoolValue = types.Bool{Value: (*variable.DefaultValue).(bool)}
+			nvar.DefaultBoolValue = types.Bool{Value: (variable.DefaultValue).(bool)}
 			break
 		case "number":
-			f := (*variable.DefaultValue).(big.Float)
+			f := (variable.DefaultValue).(big.Float)
 			nvar.DefaultNumberValue = types.Number{Value: &f}
 		}
 		variables = append(variables, nvar)
@@ -249,10 +251,10 @@ type featureResourceDataVariable struct {
 }
 
 type featureResourceDataVariation struct {
-	Id        types.String           `tfsdk:"id"`
-	Key       types.String           `tfsdk:"key"`
-	Name      types.String           `tfsdk:"name"`
-	Variables map[string]interface{} `tfsdk:"variables"`
+	Id        types.String      `tfsdk:"id"`
+	Key       types.String      `tfsdk:"key"`
+	Name      types.String      `tfsdk:"name"`
+	Variables map[string]string `tfsdk:"variables"`
 }
 
 func variationToTF(variations []devcyclem.Variation) []featureResourceDataVariation {
@@ -261,9 +263,18 @@ func variationToTF(variations []devcyclem.Variation) []featureResourceDataVariat
 		nvar := featureResourceDataVariation{
 			Key:       types.String{Value: variation.Key},
 			Name:      types.String{Value: variation.Name},
-			Variables: variation.Variables,
+			Variables: mapStringInterfaceToTF(variation.Variables),
+			Id:        types.String{Value: variation.Id},
 		}
 		ret = append(ret, nvar)
+	}
+	return ret
+}
+
+func mapStringInterfaceToTF(input map[string]interface{}) map[string]string {
+	var ret = make(map[string]string)
+	for k, v := range input {
+		ret[k] = fmt.Sprintf("%v", v)
 	}
 	return ret
 }

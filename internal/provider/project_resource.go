@@ -39,17 +39,12 @@ func (t projectResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 				Computed:            true,
 				MarkdownDescription: "Project Id",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
-					tfsdk.UseStateForUnknown(),
+					tfsdk.RequiresReplace(),
 				},
 				Type: types.StringType,
 			},
 			"organization": {
 				MarkdownDescription: "Organization that the project belongs to",
-				Computed:            true,
-				Type:                types.StringType,
-			},
-			"createdby": {
-				MarkdownDescription: "User that created the project",
 				Computed:            true,
 				Type:                types.StringType,
 			},
@@ -71,9 +66,6 @@ type projectResourceData struct {
 	Description  types.String `tfsdk:"description"`
 	Id           types.String `tfsdk:"id"`
 	Organization types.String `tfsdk:"organization"`
-	CreatedBy    types.String `tfsdk:"createdBy"`
-	CreatedAt    types.String `tfsdk:"createdAt"`
-	UpdatedAt    types.String `tfsdk:"updatedAt"`
 }
 
 type projectResource struct {
@@ -111,9 +103,6 @@ func (r projectResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 	data.Name = types.String{Value: project.Name}
 	data.Key = types.String{Value: project.Key}
 	data.Organization = types.String{Value: project.Organization}
-	data.CreatedBy = types.String{Value: project.CreatedBy}
-	data.CreatedAt = types.String{Value: project.CreatedAt.String()}
-	data.UpdatedAt = types.String{Value: project.UpdatedAt.String()}
 	data.Id = types.String{Value: project.Id}
 
 	// write logs using the tflog package
@@ -144,9 +133,6 @@ func (r projectResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	data.Name = types.String{Value: project.Name}
 	data.Key = types.String{Value: project.Key}
 	data.Organization = types.String{Value: project.Organization}
-	data.CreatedBy = types.String{Value: project.CreatedBy}
-	data.CreatedAt = types.String{Value: project.CreatedAt.String()}
-	data.UpdatedAt = types.String{Value: project.UpdatedAt.String()}
 	data.Id = types.String{Value: project.Id}
 
 	diags = resp.State.Set(ctx, &data)
@@ -177,9 +163,6 @@ func (r projectResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 	data.Name = types.String{Value: project.Name}
 	data.Key = types.String{Value: project.Key}
 	data.Organization = types.String{Value: project.Organization}
-	data.CreatedBy = types.String{Value: project.CreatedBy}
-	data.CreatedAt = types.String{Value: project.CreatedAt.String()}
-	data.UpdatedAt = types.String{Value: project.UpdatedAt.String()}
 	data.Id = types.String{Value: project.Id}
 
 	diags = resp.State.Set(ctx, &data)

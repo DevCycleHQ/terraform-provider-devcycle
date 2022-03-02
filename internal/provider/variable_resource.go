@@ -76,7 +76,7 @@ func (t variableResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				Computed:            true,
 				MarkdownDescription: "Variable ID",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
-					tfsdk.UseStateForUnknown(),
+					tfsdk.RequiresReplace(),
 				},
 				Type: types.StringType,
 			},
@@ -93,14 +93,18 @@ func (t variableResourceType) NewResource(ctx context.Context, in tfsdk.Provider
 }
 
 type variableResourceData struct {
-	Name         types.String `tfsdk:"name"`
-	Description  types.String `tfsdk:"description"`
-	Key          types.String `tfsdk:"key"`
-	FeatureId    types.String `tfsdk:"featureId"`
-	ProjectId    types.String `tfsdk:"projectId"`
-	Type         types.String `tfsdk:"type"`
-	DefaultValue *interface{} `tfsdk:"default_value"`
-	Id           types.String `tfsdk:"id"`
+	Name               types.String `tfsdk:"name"`
+	Description        types.String `tfsdk:"description"`
+	Key                types.String `tfsdk:"key"`
+	FeatureId          types.String `tfsdk:"feature_id"`
+	ProjectId          types.String `tfsdk:"project_id"`
+	ProjectKey         types.String `tfsdk:"project_key"`
+	Type               types.String `tfsdk:"type"`
+	DefaultValueBool   types.Bool   `tfsdk:"boolvalue"`
+	DefaultValueString types.String `tfsdk:"stringvalue"`
+	DefaultValueJson   types.String `tfsdk:"jsonvalue"`
+	DefaultValueNum    types.Number `tfsdk:"numvalue"`
+	Id                 types.String `tfsdk:"id"`
 }
 
 type variableResource struct {
@@ -118,12 +122,11 @@ func (r variableResource) Create(ctx context.Context, req tfsdk.CreateResourceRe
 	}
 
 	variable, httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerCreate(ctx, devcyclem.CreateVariableDto{
-		Name:         data.Name.Value,
-		Description:  data.Description.Value,
-		Key:          data.Key.Value,
-		Feature:      data.FeatureId.Value,
-		Type_:        data.Type.Value,
-		DefaultValue: data.DefaultValue,
+		Name:        data.Name.Value,
+		Description: data.Description.Value,
+		Key:         data.Key.Value,
+		Feature:     data.FeatureId.Value,
+		Type_:       data.Type.Value,
 	}, data.ProjectId.Value)
 	if err != nil || httpResponse.StatusCode != 200 {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
@@ -136,7 +139,7 @@ func (r variableResource) Create(ctx context.Context, req tfsdk.CreateResourceRe
 	data.FeatureId.Value = variable.Feature
 	data.ProjectId.Value = variable.Project
 	data.Type.Value = variable.Type_
-	data.DefaultValue = variable.DefaultValue
+	// Currently not setting default value.
 
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
@@ -159,7 +162,7 @@ func (r variableResource) Read(ctx context.Context, req tfsdk.ReadResourceReques
 
 	variable, httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
 	if err != nil || httpResponse.StatusCode != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read variable, got error: %s", err))
 		return
 	}
 	data.Id.Value = variable.Id
@@ -169,7 +172,7 @@ func (r variableResource) Read(ctx context.Context, req tfsdk.ReadResourceReques
 	data.FeatureId.Value = variable.Feature
 	data.ProjectId.Value = variable.Project
 	data.Type.Value = variable.Type_
-	data.DefaultValue = variable.DefaultValue
+	//data.DefaultValue = variable.DefaultValue
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -192,7 +195,7 @@ func (r variableResource) Update(ctx context.Context, req tfsdk.UpdateResourceRe
 	}, data.Id.Value, data.ProjectId.Value)
 
 	if err != nil || httpResponse.StatusCode != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update variable, got error: %s", err))
 		return
 	}
 	data.Id.Value = variable.Id
@@ -202,7 +205,7 @@ func (r variableResource) Update(ctx context.Context, req tfsdk.UpdateResourceRe
 	data.FeatureId.Value = variable.Feature
 	data.ProjectId.Value = variable.Project
 	data.Type.Value = variable.Type_
-	data.DefaultValue = variable.DefaultValue
+	//data.DefaultValue = variable.DefaultValue
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -220,7 +223,7 @@ func (r variableResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRe
 
 	httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
 	if err != nil || httpResponse.StatusCode != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete variable, got error: %s", err))
 		return
 	}
 

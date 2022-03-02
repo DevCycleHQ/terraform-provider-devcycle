@@ -23,7 +23,7 @@ type provider struct {
 	MgmtClient   *dvc_mgmt.APIClient
 	ServerClient *dvc_server.DVCClient
 
-	MgmtClientToken   string
+	AccessToken       string
 	ServerClientToken string
 
 	// configured is set to true at the end of the Configure method.
@@ -39,9 +39,10 @@ type provider struct {
 
 // providerData can be used to store data from the Terraform configuration.
 type providerData struct {
-	ServerSDKToken  types.String `tfsdk:"server_sdk_token"`
-	ManagementToken types.String `tfsdk:"management_token"`
-	ProjectId       types.String `tfsdk:"project_id"`
+	ServerSDKToken types.String `tfsdk:"server_sdk_token"`
+	ClientId       types.String `tfsdk:"client_id"`
+	ClientSecret   types.String `tfsdk:"client_secret"`
+	AccessToken    types.String `tfsdk:"access_token"`
 }
 
 func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
@@ -54,8 +55,8 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 		return
 	}
 
-	if data.ManagementToken.Value != "" {
-		p.MgmtClientToken = data.ManagementToken.Value
+	if data.AccessToken.Value != "" {
+		p.AccessToken = data.AccessToken.Value
 	} else {
 		accessToken := os.Getenv("DEVCYCLE_ACCESS_TOKEN")
 		clientId := os.Getenv("DEVCYCLE_CLIENT_ID")
@@ -66,9 +67,9 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 				p.configured = false
 				return
 			}
-			p.MgmtClientToken = auth.AccessToken
+			p.AccessToken = auth.AccessToken
 		} else {
-			p.MgmtClientToken = accessToken
+			p.AccessToken = accessToken
 		}
 	}
 	if data.ServerSDKToken.Value != "" {
@@ -78,11 +79,11 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 	}
 
 	config := dvc_mgmt.NewConfiguration()
-	config.DefaultHeader["Authorization"] = fmt.Sprintf("Bearer %s", p.MgmtClientToken)
+	config.AddDefaultHeader("Authorization", p.AccessToken)
+	config.BasePath = "https://api.devcycle.com"
+	config.UserAgent = "terraform-provider-devcycle"
 	p.MgmtClient = dvc_mgmt.NewAPIClient(config)
-
 	p.ServerClient = dvc_server.NewDVCClient()
-
 	p.configured = true
 }
 
@@ -98,8 +99,9 @@ func (p *provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceT
 func (p *provider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
 	return map[string]tfsdk.DataSourceType{
 		"devcycle_project":     projectDataSourceType{},
-		"devcycle_environment": variableDataSourceType{},
+		"devcycle_environment": environmentDataSourceType{},
 		"devcycle_feature":     featureDataSourceType{},
+		"devcycle_variable":    variableDataSourceType{},
 	}, nil
 }
 
