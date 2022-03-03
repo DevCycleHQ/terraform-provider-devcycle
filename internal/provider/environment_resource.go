@@ -186,15 +186,16 @@ func (r environmentResource) Read(ctx context.Context, req tfsdk.ReadResourceReq
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read environment, got error: %s", err))
 		return
 	}
-
-	data.Id.Value = environment.Id
-	data.Key.Value = environment.Key
-	data.Name.Value = environment.Name
-	data.Description.Value = environment.Description
-	data.Color.Value = environment.Color
-	data.Type.Value = environment.Type_
-	data.ProjectId.Value = environment.Project
-	data.Settings.AppIconURI.Value = environment.Settings.AppIconURI
+	data.Id = types.String{Value: environment.Id}
+	data.Key = types.String{Value: environment.Key}
+	data.Name = types.String{Value: environment.Name}
+	data.Description = types.String{Value: environment.Description}
+	data.Color = types.String{Value: environment.Color}
+	data.Type = types.String{Value: environment.Type_}
+	data.Settings = environmentResourceDataSettings{
+		AppIconURI: types.String{Value: environment.Settings.AppIconURI},
+	}
+	data.ProjectId = types.String{Value: environment.Project}
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Mobile)...)
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Server)...)
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Client)...)
@@ -226,14 +227,16 @@ func (r environmentResource) Update(ctx context.Context, req tfsdk.UpdateResourc
 		return
 	}
 
-	data.Id.Value = environment.Id
-	data.Key.Value = environment.Key
-	data.Name.Value = environment.Name
-	data.Description.Value = environment.Description
-	data.Color.Value = environment.Color
-	data.Type.Value = environment.Type_
-	data.ProjectId.Value = environment.Project
-	data.Settings.AppIconURI.Value = environment.Settings.AppIconURI
+	data.Id = types.String{Value: environment.Id}
+	data.Key = types.String{Value: environment.Key}
+	data.Name = types.String{Value: environment.Name}
+	data.Description = types.String{Value: environment.Description}
+	data.Color = types.String{Value: environment.Color}
+	data.Type = types.String{Value: environment.Type_}
+	data.Settings = environmentResourceDataSettings{
+		AppIconURI: types.String{Value: environment.Settings.AppIconURI},
+	}
+	data.ProjectId = types.String{Value: environment.Project}
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Mobile)...)
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Server)...)
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Client)...)

@@ -285,16 +285,20 @@ func (r featureResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 		return
 	}
 
-	data.Id.Value = feature.Id
-	data.Key.Value = feature.Key
-	data.Name.Value = feature.Name
-	data.Description.Value = feature.Description
-	data.ProjectId.Value = feature.Project
-	data.Source.Value = feature.Source
-	data.Type.Value = feature.Type_
-	data.Tags = feature.Tags
+	data.Id = types.String{Value: feature.Id}
+	data.Key = types.String{Value: feature.Key}
+	data.Name = types.String{Value: feature.Name}
+	data.Description = types.String{Value: feature.Description}
 	data.Variations = variationToTF(feature.Variations)
 	data.Variables = variableToTF(feature.Variables)
+	data.Type = types.String{Value: feature.Type_}
+	data.Tags = feature.Tags
+	data.ProjectId = types.String{Value: feature.Project}
+	data.Source = types.String{Value: feature.Source}
+
+	data.Variations = variationToTF(feature.Variations)
+	data.Variables = variableToTF(feature.Variables)
+
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 }
@@ -323,14 +327,17 @@ func (r featureResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 		return
 	}
 
-	data.Id.Value = feature.Id
-	data.Key.Value = feature.Key
-	data.Name.Value = feature.Name
-	data.Description.Value = feature.Description
-	data.ProjectId.Value = feature.Project
-	data.Source.Value = feature.Source
-	data.Type.Value = feature.Type_
+	data.Id = types.String{Value: feature.Id}
+	data.Key = types.String{Value: feature.Key}
+	data.Name = types.String{Value: feature.Name}
+	data.Description = types.String{Value: feature.Description}
+	data.Variations = variationToTF(feature.Variations)
+	data.Variables = variableToTF(feature.Variables)
+	data.Type = types.String{Value: feature.Type_}
 	data.Tags = feature.Tags
+	data.ProjectId = types.String{Value: feature.Project}
+	data.Source = types.String{Value: feature.Source}
+
 	data.Variations = variationToTF(feature.Variations)
 	data.Variables = variableToTF(feature.Variables)
 

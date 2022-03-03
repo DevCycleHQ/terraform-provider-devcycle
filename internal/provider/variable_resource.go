@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -25,25 +26,23 @@ func (t variableResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				Required:            true,
 				Type:                types.StringType,
 			},
-
 			"description": {
 				MarkdownDescription: "Variable description",
 				Required:            true,
 				Type:                types.StringType,
 			},
-
 			"key": {
 				MarkdownDescription: "Variable key",
 				Required:            true,
 				Type:                types.StringType,
 			},
-			"feature_key": {
+			"feature_id": {
 				MarkdownDescription: "Feature that this variable is attached to",
 				Required:            true,
 				Type:                types.StringType,
 			},
-			"project_key": {
-				MarkdownDescription: "Project key that this feature and variable is attached to",
+			"project_id": {
+				MarkdownDescription: "Project id that this feature and variable is attached to",
 				Required:            true,
 				Type:                types.StringType,
 			},
@@ -52,25 +51,10 @@ func (t variableResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				Required:            true,
 				Type:                types.StringType,
 			},
-			"stringvalue": {
-				MarkdownDescription: "Variable value if the type is string",
-				Optional:            true,
+			"default_value": {
+				MarkdownDescription: "Variable value. Will be parsed based on the type setting.",
+				Required:            true,
 				Type:                types.StringType,
-			},
-			"jsonvalue": {
-				MarkdownDescription: "Variable value if the type is json",
-				Optional:            true,
-				Type:                types.StringType,
-			},
-			"boolvalue": {
-				MarkdownDescription: "Variable value if the type is boolean",
-				Optional:            true,
-				Type:                types.BoolType,
-			},
-			"numvalue": {
-				MarkdownDescription: "Variable value if the type is number",
-				Optional:            true,
-				Type:                types.NumberType,
 			},
 			"id": {
 				Computed:            true,
@@ -93,18 +77,14 @@ func (t variableResourceType) NewResource(ctx context.Context, in tfsdk.Provider
 }
 
 type variableResourceData struct {
-	Name               types.String `tfsdk:"name"`
-	Description        types.String `tfsdk:"description"`
-	Key                types.String `tfsdk:"key"`
-	FeatureId          types.String `tfsdk:"feature_id"`
-	ProjectId          types.String `tfsdk:"project_id"`
-	ProjectKey         types.String `tfsdk:"project_key"`
-	Type               types.String `tfsdk:"type"`
-	DefaultValueBool   types.Bool   `tfsdk:"boolvalue"`
-	DefaultValueString types.String `tfsdk:"stringvalue"`
-	DefaultValueJson   types.String `tfsdk:"jsonvalue"`
-	DefaultValueNum    types.Number `tfsdk:"numvalue"`
-	Id                 types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Description  types.String `tfsdk:"description"`
+	Key          types.String `tfsdk:"key"`
+	FeatureId    types.String `tfsdk:"feature_id"`
+	ProjectId    types.String `tfsdk:"project_id"`
+	Type         types.String `tfsdk:"type"`
+	DefaultValue types.String `tfsdk:"default_value"`
+	Id           types.String `tfsdk:"id"`
 }
 
 type variableResource struct {
@@ -128,19 +108,35 @@ func (r variableResource) Create(ctx context.Context, req tfsdk.CreateResourceRe
 		Feature:     data.FeatureId.Value,
 		Type_:       data.Type.Value,
 	}, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
 		return
 	}
-	data.Id.Value = variable.Id
-	data.Key.Value = variable.Key
-	data.Name.Value = variable.Name
-	data.Description.Value = variable.Description
-	data.FeatureId.Value = variable.Feature
-	data.ProjectId.Value = variable.Project
-	data.Type.Value = variable.Type_
-	// Currently not setting default value.
+	data.Id = types.String{Value: variable.Id}
+	data.Key = types.String{Value: variable.Key}
+	data.Name = types.String{Value: variable.Name}
+	data.Description = types.String{Value: variable.Description}
+	data.Type = types.String{Value: variable.Type_}
+	data.FeatureId = types.String{Value: variable.Feature}
+	data.ProjectId = types.String{Value: variable.Project}
 
+	switch variable.Type_ {
+	case "String":
+		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
+		break
+	case "JSON":
+		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
+		break
+	case "Boolean":
+		fmt.Println(variable.DefaultValue)
+		out, _ := strconv.ParseBool(fmt.Sprintf("%v", variable.DefaultValue))
+		data.DefaultValue = types.String{Value: strconv.FormatBool(out)}
+		break
+	case "Number":
+		out, _ := strconv.ParseFloat(fmt.Sprintf("%v", variable.DefaultValue), 64)
+		data.DefaultValue = types.String{Value: strconv.FormatFloat(out, 'f', -1, 64)}
+		break
+	}
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
 	// for more information
@@ -161,19 +157,35 @@ func (r variableResource) Read(ctx context.Context, req tfsdk.ReadResourceReques
 	}
 
 	variable, httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read variable, got error: %s", err))
 		return
 	}
-	data.Id.Value = variable.Id
-	data.Key.Value = variable.Key
-	data.Name.Value = variable.Name
-	data.Description.Value = variable.Description
-	data.FeatureId.Value = variable.Feature
-	data.ProjectId.Value = variable.Project
-	data.Type.Value = variable.Type_
-	//data.DefaultValue = variable.DefaultValue
+	data.Id = types.String{Value: variable.Id}
+	data.Key = types.String{Value: variable.Key}
+	data.Name = types.String{Value: variable.Name}
+	data.Description = types.String{Value: variable.Description}
+	data.Type = types.String{Value: variable.Type_}
+	data.FeatureId = types.String{Value: variable.Feature}
+	data.ProjectId = types.String{Value: variable.Project}
 
+	switch variable.Type_ {
+	case "String":
+		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
+		break
+	case "JSON":
+		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
+		break
+	case "Boolean":
+		fmt.Println(variable.DefaultValue)
+		out, _ := strconv.ParseBool(fmt.Sprintf("%v", variable.DefaultValue))
+		data.DefaultValue = types.String{Value: strconv.FormatBool(out)}
+		break
+	case "Number":
+		out, _ := strconv.ParseFloat(fmt.Sprintf("%v", variable.DefaultValue), 64)
+		data.DefaultValue = types.String{Value: strconv.FormatFloat(out, 'f', -1, 64)}
+		break
+	}
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 }
@@ -194,19 +206,34 @@ func (r variableResource) Update(ctx context.Context, req tfsdk.UpdateResourceRe
 		Feature:     data.FeatureId.Value,
 	}, data.Id.Value, data.ProjectId.Value)
 
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update variable, got error: %s", err))
 		return
 	}
-	data.Id.Value = variable.Id
-	data.Key.Value = variable.Key
-	data.Name.Value = variable.Name
-	data.Description.Value = variable.Description
-	data.FeatureId.Value = variable.Feature
-	data.ProjectId.Value = variable.Project
-	data.Type.Value = variable.Type_
-	//data.DefaultValue = variable.DefaultValue
-
+	data.Id = types.String{Value: variable.Id}
+	data.Key = types.String{Value: variable.Key}
+	data.Name = types.String{Value: variable.Name}
+	data.Description = types.String{Value: variable.Description}
+	data.Type = types.String{Value: variable.Type_}
+	data.FeatureId = types.String{Value: variable.Feature}
+	data.ProjectId = types.String{Value: variable.Project}
+	switch variable.Type_ {
+	case "String":
+		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
+		break
+	case "JSON":
+		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
+		break
+	case "Boolean":
+		fmt.Println(variable.DefaultValue)
+		out, _ := strconv.ParseBool(fmt.Sprintf("%v", variable.DefaultValue))
+		data.DefaultValue = types.String{Value: strconv.FormatBool(out)}
+		break
+	case "Number":
+		out, _ := strconv.ParseFloat(fmt.Sprintf("%v", variable.DefaultValue), 64)
+		data.DefaultValue = types.String{Value: strconv.FormatFloat(out, 'f', -1, 64)}
+		break
+	}
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 }
@@ -222,7 +249,7 @@ func (r variableResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRe
 	}
 
 	httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete variable, got error: %s", err))
 		return
 	}
