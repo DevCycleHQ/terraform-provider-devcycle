@@ -41,8 +41,6 @@ jobs:
           # These secrets will need to be configured for the repository:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Run Go Generate for Docs
-        run: go generate
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2.9.1
         with:
