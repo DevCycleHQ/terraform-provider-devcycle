@@ -14,7 +14,7 @@ import (
 // reattach.
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"devcycle": func() (tfprotov6.ProviderServer, error) {
-		return tfsdk.NewProtocol6Server(New("0.0.3")()), nil
+		return tfsdk.NewProtocol6Server(New("testing")()), nil
 	},
 }
 

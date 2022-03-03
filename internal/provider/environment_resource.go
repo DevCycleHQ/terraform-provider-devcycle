@@ -50,32 +50,29 @@ func (t environmentResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, d
 				Required:            true,
 				Type:                types.StringType,
 			},
-			"appiconuri": {
-				MarkdownDescription: "Environment App Icon URI",
+			"settings": {
+				MarkdownDescription: "Environment Settings",
 				Required:            true,
-				Type:                types.StringType,
+				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+					"app_icon_uri": {
+						MarkdownDescription: "Environment App Icon Uri",
+						Required:            true,
+						Type:                types.StringType,
+					},
+				}),
 			},
 			"id": {
 				Computed:            true,
 				MarkdownDescription: "Environment Id",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
-					tfsdk.UseStateForUnknown(),
+					tfsdk.RequiresReplace(),
 				},
 				Type: types.StringType,
 			},
-			"sdkKeys": {
+			"sdk_keys": {
 				Computed:            true,
 				MarkdownDescription: "SDK Keys for the environment",
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"type": {
-						Type:     types.StringType,
-						Computed: true,
-					},
-					"key": {
-						Type:     types.StringType,
-						Computed: true,
-					},
-				}, tfsdk.ListNestedAttributesOptions{}),
+				Type:                types.ListType{ElemType: types.StringType},
 			},
 		},
 	}, nil
@@ -98,7 +95,7 @@ type environmentResourceData struct {
 	Type        types.String                    `tfsdk:"type"`
 	Settings    environmentResourceDataSettings `tfsdk:"settings"`
 	ProjectId   types.String                    `tfsdk:"project_id"`
-	SDKKeys     []string                        `tfsdk:"sdkKeys"`
+	SDKKeys     []string                        `tfsdk:"sdk_keys"`
 }
 
 func sdkKeyConvert(keys []devcyclem.ApiKey) []string {
@@ -110,7 +107,7 @@ func sdkKeyConvert(keys []devcyclem.ApiKey) []string {
 }
 
 type environmentResourceDataSettings struct {
-	AppIconURI types.String `tfsdk:"appiconuri"`
+	AppIconURI types.String `tfsdk:"app_icon_uri"`
 }
 
 func (s *environmentResourceDataSettings) toCreateSDK() *devcyclem.AllOfCreateEnvironmentDtoSettings {
@@ -146,19 +143,21 @@ func (r environmentResource) Create(ctx context.Context, req tfsdk.CreateResourc
 		Type_:       data.Type.Value,
 		Settings:    data.Settings.toCreateSDK(),
 	}, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create environment, got error: %s", err))
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create environment, got error: %s.\nHTTP: %s", err, httpResponse.Status))
 		return
 	}
 
-	data.Id.Value = environment.Id
-	data.Key.Value = environment.Key
-	data.Name.Value = environment.Name
-	data.Description.Value = environment.Description
-	data.Color.Value = environment.Color
-	data.Type.Value = environment.Type_
-	data.ProjectId.Value = environment.Project
-	data.Settings.AppIconURI.Value = environment.Settings.AppIconURI
+	data.Id = types.String{Value: environment.Id}
+	data.Key = types.String{Value: environment.Key}
+	data.Name = types.String{Value: environment.Name}
+	data.Description = types.String{Value: environment.Description}
+	data.Color = types.String{Value: environment.Color}
+	data.Type = types.String{Value: environment.Type_}
+	data.Settings = environmentResourceDataSettings{
+		AppIconURI: types.String{Value: environment.Settings.AppIconURI},
+	}
+	data.ProjectId = types.String{Value: environment.Project}
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Mobile)...)
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Server)...)
 	data.SDKKeys = append(data.SDKKeys, sdkKeyConvert(environment.SdkKeys.Client)...)
@@ -183,7 +182,7 @@ func (r environmentResource) Read(ctx context.Context, req tfsdk.ReadResourceReq
 	}
 
 	environment, httpResponse, err := r.provider.MgmtClient.EnvironmentsApi.EnvironmentsControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read environment, got error: %s", err))
 		return
 	}
@@ -259,7 +258,7 @@ func (r environmentResource) Delete(ctx context.Context, req tfsdk.DeleteResourc
 	}
 
 	httpResponse, err := r.provider.MgmtClient.EnvironmentsApi.EnvironmentsControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete environment, got error: %s", err))
 		return
 	}

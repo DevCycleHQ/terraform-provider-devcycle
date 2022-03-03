@@ -35,7 +35,7 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 				Required:            true,
 				Type:                types.StringType,
 			},
-			"projectId": {
+			"project_id": {
 				MarkdownDescription: "Project ID that the feature belongs to",
 				Required:            true,
 				Type:                types.StringType,
@@ -45,14 +45,19 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 				Required:            true,
 				Type:                types.StringType,
 			},
+			"source": {
+				MarkdownDescription: "Source of Feature creation",
+				Computed:            true,
+				Type:                types.StringType,
+			},
 			"tags": {
 				MarkdownDescription: "Feature tags",
-				Required:            true,
+				Optional:            true,
 				Type:                types.ListType{ElemType: types.StringType},
 			},
 			"variations": {
 				MarkdownDescription: "Feature variations",
-				Required:            true,
+				Optional:            true,
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"key": {
 						Type:                types.StringType,
@@ -78,49 +83,8 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 			},
 			"variables": {
 				MarkdownDescription: "Feature variables",
-				Required:            true,
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"key": {
-						Type:                types.StringType,
-						Required:            true,
-						MarkdownDescription: "Variable key",
-					},
-					"name": {
-						Type:                types.StringType,
-						Required:            true,
-						MarkdownDescription: "Variable name",
-					},
-					"feature_key": {
-						Type:                types.StringType,
-						Required:            true,
-						MarkdownDescription: "Feature that this variable is attached to",
-					},
-					"type": {
-						Type:                types.StringType,
-						Required:            true,
-						MarkdownDescription: "Variable datatype",
-					},
-					"default_string_value": {
-						Type:                types.StringType,
-						Optional:            true,
-						MarkdownDescription: "Variable default value if the type is string",
-					},
-					"default_json_value": {
-						Type:                types.StringType,
-						Optional:            true,
-						MarkdownDescription: "Variable default value if the type is json",
-					},
-					"default_bool_value": {
-						Type:                types.BoolType,
-						Optional:            true,
-						MarkdownDescription: "Variable default value if the type is bool",
-					},
-					"default_number_value": {
-						Type:                types.NumberType,
-						Optional:            true,
-						MarkdownDescription: "Variable default value if the type is number",
-					},
-				}, tfsdk.ListNestedAttributesOptions{}),
+				Optional:            true,
+				Type:                types.ListType{ElemType: types.StringType},
 			},
 			"id": {
 				Computed:            true,
@@ -148,7 +112,6 @@ type featureResourceData struct {
 	Key         types.String                   `tfsdk:"key"`
 	Description types.String                   `tfsdk:"description"`
 	ProjectId   types.String                   `tfsdk:"project_id"`
-	ProjectKey  types.String                   `tfsdk:"project_key"`
 	Source      types.String                   `tfsdk:"source"`
 	Type        types.String                   `tfsdk:"type"`
 	Tags        []string                       `tfsdk:"tags"`
@@ -278,19 +241,22 @@ func (r featureResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 		Type_:       data.Type.Value,
 		Tags:        data.Tags,
 	}, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create feature, got error: %s", err))
 		return
 	}
 
-	data.Id.Value = feature.Id
-	data.Key.Value = feature.Key
-	data.Name.Value = feature.Name
-	data.Description.Value = feature.Description
-	data.ProjectId.Value = feature.Project
-	data.Source.Value = feature.Source
-	data.Type.Value = feature.Type_
+	data.Id = types.String{Value: feature.Id}
+	data.Key = types.String{Value: feature.Key}
+	data.Name = types.String{Value: feature.Name}
+	data.Description = types.String{Value: feature.Description}
+	data.Variations = variationToTF(feature.Variations)
+	data.Variables = variableToTF(feature.Variables)
+	data.Type = types.String{Value: feature.Type_}
 	data.Tags = feature.Tags
+	data.ProjectId = types.String{Value: feature.Project}
+	data.Source = types.String{Value: feature.Source}
+
 	data.Variations = variationToTF(feature.Variations)
 	data.Variables = variableToTF(feature.Variables)
 
@@ -314,7 +280,7 @@ func (r featureResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	}
 
 	feature, httpResponse, err := r.provider.MgmtClient.FeaturesApi.FeaturesControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read feature, got error: %s", err))
 		return
 	}
@@ -352,7 +318,7 @@ func (r featureResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 		Type_:       data.Type.Value,
 		Tags:        data.Tags,
 	}, data.Key.Value, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update feature, got error: %s", err))
 		return
 	}
@@ -383,7 +349,7 @@ func (r featureResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 	}
 
 	httpResponse, err := r.provider.MgmtClient.FeaturesApi.FeaturesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete feature, got error: %s", err))
 
 		return
