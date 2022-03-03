@@ -96,7 +96,7 @@ func (r projectResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 		Description: data.Description.Value,
 	})
 
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create project, got error: %s", err))
 		return
 	}
@@ -125,7 +125,7 @@ func (r projectResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	}
 
 	project, httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerFindOne(ctx, data.Key.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read project, got error: %s", err))
 		return
 	}
@@ -155,7 +155,7 @@ func (r projectResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 		Description: data.Description.Value,
 	}, data.Key.Value)
 
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update project, got error: %s", err))
 		return
 	}
@@ -179,8 +179,8 @@ func (r projectResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 		return
 	}
 
-	remove, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerRemove(ctx, data.Key.Value)
-	if err != nil || remove.StatusCode != 200 {
+	httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerRemove(ctx, data.Key.Value)
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete project, got error: %s", err))
 		return
 	}

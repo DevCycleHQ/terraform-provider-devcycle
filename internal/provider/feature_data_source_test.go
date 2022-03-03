@@ -15,7 +15,7 @@ func TestAccFeatureDataSource(t *testing.T) {
 			{
 				Config: testAccFeatureDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.devcycle_feature.test", "project_id", "621fc3113bb541e45c20e6da"),
+					resource.TestCheckResourceAttr("data.devcycle_feature.test", "id", "622115014b06357d06d1cf3e"),
 				),
 			},
 		},
@@ -24,7 +24,7 @@ func TestAccFeatureDataSource(t *testing.T) {
 
 const testAccFeatureDataSourceConfig = `
 data "devcycle_feature" "test" {
-  key = "experiment-feature"
+  key = "terraform-provider-feature"
   project_key = "terraform-provider-testing"
 }
 `

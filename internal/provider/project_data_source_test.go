@@ -15,7 +15,7 @@ func TestAccProjectDataSource(t *testing.T) {
 			{
 				Config: testAccProjectDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.devcycle_project.test", "description", "Terraform Provider Testing"),
+					resource.TestCheckResourceAttr("data.devcycle_project.test", "id", "622112634cabe0e9fbaf974d"),
 				),
 			},
 		},

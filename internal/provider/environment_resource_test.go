@@ -15,7 +15,7 @@ func TestAccEnvironmentResource(t *testing.T) {
 			{
 				Config: testAccEnvironmentResourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("devcycle_environment.test", "project_id", "621fc3113bb541e45c20e6da"),
+					resource.TestCheckResourceAttr("devcycle_environment.test", "project_id", "622112634cabe0e9fbaf974d"),
 				),
 			},
 			{
@@ -28,7 +28,7 @@ func TestAccEnvironmentResource(t *testing.T) {
 
 var testAccEnvironmentResourceConfig = `
 resource "devcycle_environment" "test" {
-  project_id = "621fc3113bb541e45c20e6da"
+  project_id = "622112634cabe0e9fbaf974d"
   name = "TerraformAccTest` + randSeq(5) + `"
   key = "terraform-acceptance-testing` + randSeq(5) + `"
   description = "Terraform acceptance testing"

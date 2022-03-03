@@ -15,7 +15,7 @@ func TestAccVariableDataSource(t *testing.T) {
 			{
 				Config: testAccVariableDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.devcycle_variable.test", "project_id", "621fc3113bb541e45c20e6da"),
+					resource.TestCheckResourceAttr("data.devcycle_variable.test", "id", "622117604b06357d06d1d0f9"),
 				),
 			},
 		},
@@ -24,7 +24,7 @@ func TestAccVariableDataSource(t *testing.T) {
 
 const testAccVariableDataSourceConfig = `
 data "devcycle_variable" "test" {
-  key = "bool-variable"
+  key = "terraform-provider-variable"
   project_key = "terraform-provider-testing"
 }
 `

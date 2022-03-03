@@ -15,7 +15,7 @@ func TestAccEnvironmentDataSource(t *testing.T) {
 			{
 				Config: testAccEnvironmentDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.devcycle_environment.test", "id", "621fc3113bb541e45c20e6dc"),
+					resource.TestCheckResourceAttr("data.devcycle_environment.test", "id", "622112634cabe0e9fbaf974f"),
 				),
 			},
 		},

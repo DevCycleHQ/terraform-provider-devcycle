@@ -221,7 +221,7 @@ func (r environmentResource) Update(ctx context.Context, req tfsdk.UpdateResourc
 		Type_:       data.Type.Value,
 		Settings:    data.Settings.toUpdateSDK(),
 	}, data.Key.Value, data.ProjectId.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
+	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update environment, got error: %s", err))
 		return
 	}
