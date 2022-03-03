@@ -17,25 +17,24 @@ Example resource
 
 ### Required
 
-- **appiconuri** (String) Environment App Icon URI
 - **color** (String) Environment Color in Hex with leading #
 - **description** (String) Environment Description
 - **key** (String) Environment Key
 - **name** (String) Environment Name
 - **project_id** (String) Project id or key of the project to which the environment belongs
+- **settings** (Attributes) Environment Settings (see [below for nested schema](#nestedatt--settings))
 - **type** (String) Environment Type
 
 ### Read-Only
 
 - **id** (String) Environment Id
-- **sdkKeys** (Attributes List) SDK Keys for the environment (see [below for nested schema](#nestedatt--sdkKeys))
+- **sdk_keys** (List of String) SDK Keys for the environment
 
-<a id="nestedatt--sdkKeys"></a>
-### Nested Schema for `sdkKeys`
+<a id="nestedatt--settings"></a>
+### Nested Schema for `settings`
 
-Read-Only:
+Required:
 
-- **key** (String)
-- **type** (String)
+- **app_icon_uri** (String) Environment App Icon Uri
 
 

@@ -17,10 +17,27 @@ Example data source
 
 ### Required
 
-- **key** (String) Example data source attribute
+- **key** (String) Feature key
+- **project_key** (String) Project key that the feature belongs to
 
 ### Read-Only
 
-- **id** (String) Example identifier
+- **description** (String) Feature description
+- **id** (String) Feature ID
+- **name** (String) Feature name
+- **project_id** (String) Project ID that the feature belongs to
+- **type** (String) Feature Type
+- **variables** (List of String) Feature variable ids
+- **variations** (Attributes List) Feature variations (see [below for nested schema](#nestedatt--variations))
+
+<a id="nestedatt--variations"></a>
+### Nested Schema for `variations`
+
+Read-Only:
+
+- **id** (String) Variation ID
+- **key** (String) Variation key
+- **name** (String) Variation name
+- **variables** (Map of String) Variation variables - force casted to a string because of nested attributes
 
 

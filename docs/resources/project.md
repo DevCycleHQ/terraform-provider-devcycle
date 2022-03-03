@@ -23,7 +23,6 @@ DevCycle project resource. Allows for creation/modification of a project.
 
 ### Read-Only
 
-- **createdby** (String) User that created the project
 - **id** (String) Project Id
 - **organization** (String) Organization that the project belongs to
 

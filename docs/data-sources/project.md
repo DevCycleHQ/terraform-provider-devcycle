@@ -23,4 +23,10 @@ Example data source
 
 - **id** (String) Project Id
 
+### Read-Only
+
+- **description** (String) Project description
+- **name** (String) Project name
+- **organization** (String) Project org id
+
 

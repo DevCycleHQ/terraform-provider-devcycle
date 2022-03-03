@@ -17,11 +17,17 @@ Example data source
 
 ### Required
 
-- **key** (String) Project key, usually the lowercase, kebab case name of the project
-- **project_id** (String) Project ID
+- **key** (String) Environment Key
+- **project_key** (String) Project key of the project to which the environment belongs
 
-### Optional
+### Read-Only
 
-- **id** (String) Project Id
+- **color** (String) Environment Color in Hex with leading #
+- **description** (String) Environment Description
+- **id** (String) Environment Id
+- **name** (String) Environment Name
+- **project_id** (String) Project id or key of the project to which the environment belongs
+- **sdk_keys** (List of String) SDK Keys for the environment
+- **type** (String) Environment Type
 
 

@@ -20,35 +20,24 @@ Example resource
 - **description** (String) Feature description
 - **key** (String) Feature key
 - **name** (String) Feature name
-- **projectId** (String) Project ID that the feature belongs to
-- **tags** (List of String) Feature tags
+- **project_id** (String) Project ID that the feature belongs to
 - **type** (String) Feature Type
-- **variables** (Attributes List) Feature variables (see [below for nested schema](#nestedatt--variables))
+
+### Optional
+
+- **tags** (List of String) Feature tags
+- **variables** (List of String) Feature variables
 - **variations** (Attributes List) Feature variations (see [below for nested schema](#nestedatt--variations))
 
 ### Read-Only
 
 - **id** (String) Feature ID
-
-<a id="nestedatt--variables"></a>
-### Nested Schema for `variables`
-
-Required:
-
-- **default_bool_value** (Boolean) Variable default value if the type is bool
-- **default_json_value** (String) Variable default value if the type is json
-- **default_number_value** (Number) Variable default value if the type is number
-- **default_string_value** (String) Variable default value if the type is string
-- **feature_key** (String) Feature that this variable is attached to
-- **key** (String) Variable key
-- **name** (String) Variable name
-- **type** (String) Variable datatype
-
+- **source** (String) Source of Feature creation
 
 <a id="nestedatt--variations"></a>
 ### Nested Schema for `variations`
 
-Required:
+Optional:
 
 - **description** (String) Variation description
 - **key** (String) Variation key
@@ -58,6 +47,6 @@ Required:
 <a id="nestedatt--variations--variables"></a>
 ### Nested Schema for `variations.variables`
 
-Required:
+Optional:
 
 
