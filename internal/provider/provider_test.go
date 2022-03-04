@@ -1,8 +1,10 @@
 package provider
 
 import (
+	"math/rand"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -19,6 +21,7 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 }
 
 func testAccPreCheck(t *testing.T) {
+	rand.Seed(time.Now().UnixNano())
 	t.Setenv("DEVCYCLE_CLIENT_ID", os.Getenv("DEVCYCLE_CLIENT_ID"))
 	t.Setenv("DEVCYCLE_CLIENT_SECRET", os.Getenv("DEVCYCLE_CLIENT_SECRET"))
 	t.Setenv("DEVCYCLE_ACCESS_TOKEN", os.Getenv("DEVCYCLE_ACCESS_TOKEN"))
