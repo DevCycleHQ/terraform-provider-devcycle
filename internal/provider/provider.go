@@ -58,18 +58,15 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 	if data.AccessToken.Value != "" {
 		p.AccessToken = data.AccessToken.Value
 	} else {
-		accessToken := os.Getenv("DEVCYCLE_ACCESS_TOKEN")
 		clientId := os.Getenv("DEVCYCLE_CLIENT_ID")
 		clientSecret := os.Getenv("DEVCYCLE_CLIENT_SECRET")
-		if accessToken == "" && clientId != "" && clientSecret != "" {
+		if clientId != "" && clientSecret != "" {
 			auth, err := dvc_oauth.GetAuthToken(clientId, clientSecret)
 			if err != nil {
 				p.configured = false
 				return
 			}
 			p.AccessToken = auth.AccessToken
-		} else {
-			p.AccessToken = accessToken
 		}
 	}
 	if data.ServerSDKToken.Value != "" {
