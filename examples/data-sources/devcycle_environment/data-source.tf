@@ -1,4 +1,4 @@
 data "devcycle_environment" "test" {
-  key = "environment-key"
+  key         = "environment-key"
   project_key = "terraform-provider-testing"
 }
