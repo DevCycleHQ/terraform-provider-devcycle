@@ -29,8 +29,7 @@ var (
 
 func main() {
 	opts := tfsdk.ServeOpts{
-		// TODO: Update this string with the published name of your provider.
-		Name: "registry.terraform.io/hashicorp/scaffolding",
+		Name: "registry.terraform.io/DevCycleHQ/devcycle",
 	}
 
 	err := tfsdk.Serve(context.Background(), provider.New(version), opts)
