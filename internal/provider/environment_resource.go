@@ -16,11 +16,11 @@ type environmentResourceType struct{}
 func (t environmentResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Example resource",
+		MarkdownDescription: "DevCycle Environment resource",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"project_id": {
-				MarkdownDescription: "Project id or key of the project to which the environment belongs",
+				MarkdownDescription: "Project id or key of the project to which the environment belongs. Using the key (human readable name) is recommended when not managing the project through Terraform.",
 				Required:            true,
 				Type:                types.StringType,
 			},

@@ -3,12 +3,12 @@
 page_title: "devcycle_project Data Source - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  Example data source
+  DevCycle Project data source
 ---
 
 # devcycle_project (Data Source)
 
-Example data source
+DevCycle Project data source
 
 ## Example Usage
 

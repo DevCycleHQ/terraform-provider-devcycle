@@ -3,12 +3,12 @@
 page_title: "devcycle_variable Data Source - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  Example data source
+  DevCycle Variable data source
 ---
 
 # devcycle_variable (Data Source)
 
-Example data source
+DevCycle Variable data source
 
 ## Example Usage
 

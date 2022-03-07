@@ -15,7 +15,7 @@ type variableDataSourceType struct{}
 func (t variableDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Example data source",
+		MarkdownDescription: "DevCycle Variable data source",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"key": {

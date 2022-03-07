@@ -2,8 +2,8 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -92,23 +92,19 @@ func (r projectResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 
 	project, httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerCreate(ctx, devcyclem.CreateProjectDto{
 		Name:        data.Name.Value,
-		Key:         data.Key.Value,
+		Key:         strings.ToLower(data.Key.Value),
 		Description: data.Description.Value,
 	})
-
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create project, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
+
 	data.Name = types.String{Value: project.Name}
 	data.Key = types.String{Value: project.Key}
 	data.Organization = types.String{Value: project.Organization}
 	data.Id = types.String{Value: project.Id}
 
-	// write logs using the tflog package
-	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
-	// for more information
-	tflog.Trace(ctx, "")
+	tflog.Trace(ctx, "Created a project with id %s", project.Id)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -125,8 +121,7 @@ func (r projectResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	}
 
 	project, httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerFindOne(ctx, data.Key.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read project, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 
@@ -154,9 +149,7 @@ func (r projectResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 		Key:         data.Key.Value,
 		Description: data.Description.Value,
 	}, data.Key.Value)
-
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update project, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 

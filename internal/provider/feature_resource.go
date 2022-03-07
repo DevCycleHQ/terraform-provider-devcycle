@@ -16,7 +16,7 @@ type featureResourceType struct{}
 func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Example resource",
+		MarkdownDescription: "DevCycle Feature resource",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"name": {
@@ -279,8 +279,7 @@ func (r featureResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	}
 
 	feature, httpResponse, err := r.provider.MgmtClient.FeaturesApi.FeaturesControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read feature, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 

@@ -3,12 +3,12 @@
 page_title: "devcycle_feature Data Source - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  Example data source
+  DevCycle Feature data source
 ---
 
 # devcycle_feature (Data Source)
 
-Example data source
+DevCycle Feature data source
 
 ## Example Usage
 

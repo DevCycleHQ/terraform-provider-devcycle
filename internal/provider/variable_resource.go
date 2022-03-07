@@ -18,7 +18,7 @@ type variableResourceType struct{}
 func (t variableResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Example resource",
+		MarkdownDescription: "DevCycle Variable resource",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"name": {

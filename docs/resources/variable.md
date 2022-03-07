@@ -3,12 +3,12 @@
 page_title: "devcycle_variable Resource - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  Example resource
+  DevCycle Variable resource
 ---
 
 # devcycle_variable (Resource)
 
-Example resource
+DevCycle Variable resource
 
 ## Example Usage
 

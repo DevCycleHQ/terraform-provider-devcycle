@@ -16,7 +16,7 @@ func (t environmentDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema,
 
 		Attributes: map[string]tfsdk.Attribute{
 			"project_id": {
-				MarkdownDescription: "Project id or key of the project to which the environment belongs",
+				MarkdownDescription: `Project id of the project to which the environment belongs.`,
 				Computed:            true,
 				Type:                types.StringType,
 			},
@@ -31,7 +31,7 @@ func (t environmentDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema,
 				Type:                types.StringType,
 			},
 			"key": {
-				MarkdownDescription: "Environment Key",
+				MarkdownDescription: "Environment Key (Human readable id)",
 				Required:            true,
 				Type:                types.StringType,
 			},

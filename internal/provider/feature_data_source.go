@@ -12,7 +12,7 @@ type featureDataSourceType struct{}
 func (t featureDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Example data source",
+		MarkdownDescription: "DevCycle Feature data source",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"name": {

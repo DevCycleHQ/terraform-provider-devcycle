@@ -3,12 +3,12 @@
 page_title: "devcycle_feature Resource - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  Example resource
+  DevCycle Feature resource
 ---
 
 # devcycle_feature (Resource)
 
-Example resource
+DevCycle Feature resource
 
 ## Example Usage
 

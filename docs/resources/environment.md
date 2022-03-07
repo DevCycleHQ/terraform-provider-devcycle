@@ -3,12 +3,12 @@
 page_title: "devcycle_environment Resource - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  Example resource
+  DevCycle Environment resource
 ---
 
 # devcycle_environment (Resource)
 
-Example resource
+DevCycle Environment resource
 
 ## Example Usage
 
@@ -35,7 +35,7 @@ resource "devcycle_environment" "test" {
 - **description** (String) Environment Description
 - **key** (String) Environment Key
 - **name** (String) Environment Name
-- **project_id** (String) Project id or key of the project to which the environment belongs
+- **project_id** (String) Project id or key of the project to which the environment belongs. Using the key (human readable name) is recommended when not managing the project through Terraform.
 - **settings** (Attributes) Environment Settings (see [below for nested schema](#nestedatt--settings))
 - **type** (String) Environment Type
 

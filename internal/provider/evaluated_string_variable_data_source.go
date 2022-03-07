@@ -17,40 +17,7 @@ func (t evaluatedStringVariableDataSourceType) GetSchema(ctx context.Context) (t
 		MarkdownDescription: "Evaluated Variable data source.",
 
 		Attributes: map[string]tfsdk.Attribute{
-			"user": {
-				MarkdownDescription: "User data to drive bucketing into variations",
-				Required:            true,
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"id": {
-						MarkdownDescription: "User ID",
-						Required:            true,
-						Type:                types.StringType,
-					},
-					"name": {
-						MarkdownDescription: "User name",
-						Optional:            true,
-						Type:                types.StringType,
-					},
-					"app_version": {
-						MarkdownDescription: "User app version",
-						Optional:            true,
-						Type:                types.StringType,
-					},
-					"email": {
-						MarkdownDescription: "User email",
-						Optional:            true,
-						Type:                types.StringType,
-					},
-					"app_build": {
-						MarkdownDescription: "User app build",
-						Optional:            true,
-						Type:                types.StringType,
-					},
-				}),
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					tfsdk.RequiresReplace(),
-				},
-			},
+			"user": userDataSchema(),
 			"value": {
 				MarkdownDescription: "Value of the Variable",
 				Computed:            true,
@@ -63,7 +30,7 @@ func (t evaluatedStringVariableDataSourceType) GetSchema(ctx context.Context) (t
 			},
 			"id": {
 				Required:            true,
-				MarkdownDescription: "Variable ID",
+				MarkdownDescription: "Variable ID or key. Recommended to use the key when not managing an entire project in Terraform.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},

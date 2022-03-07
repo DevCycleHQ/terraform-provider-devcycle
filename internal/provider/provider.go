@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	dvc_oauth "github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
+	"github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
 	"os"
 
 	dvc_mgmt "github.com/devcyclehq/go-mgmt-sdk"
@@ -16,10 +16,6 @@ import (
 // provider satisfies the tfsdk.Provider interface and usually is included
 // with all Resource and DataSource implementations.
 type provider struct {
-	// client can contain the upstream provider SDK or HTTP client used to
-	// communicate with the upstream service. Resource and DataSource
-	// implementations can then make calls using this client.
-	//
 	MgmtClient          *dvc_mgmt.APIClient
 	ServerClient        *dvc_server.DVCClient
 	AccessToken         string

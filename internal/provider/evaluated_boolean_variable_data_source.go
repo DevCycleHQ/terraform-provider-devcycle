@@ -19,18 +19,18 @@ func (t evaluatedBoolVariableDataSourceType) GetSchema(ctx context.Context) (tfs
 		Attributes: map[string]tfsdk.Attribute{
 			"user": userDataSchema(),
 			"value": {
-				MarkdownDescription: "Value of the Variable",
+				MarkdownDescription: "Value of the Variable. Either true or false.",
 				Computed:            true,
 				Type:                types.BoolType,
 			},
 			"default_value": {
-				MarkdownDescription: "Default value of the Variable",
+				MarkdownDescription: "Default value of the Variable. Either true or false.",
 				Required:            true,
 				Type:                types.BoolType,
 			},
 			"id": {
 				Required:            true,
-				MarkdownDescription: "Variable ID",
+				MarkdownDescription: "Variable ID or key. Recommended to use the key when not managing an entire project in Terraform.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
