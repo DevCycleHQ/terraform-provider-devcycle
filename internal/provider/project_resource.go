@@ -177,6 +177,8 @@ func (r projectResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 		return
 	}
 
+	tflog.Trace(ctx, "Deleted project with id %s", data.Key.Value)
+
 	resp.State.RemoveResource(ctx)
 }
 

@@ -19,6 +19,13 @@ func TestAccFeatureResource(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccFeatureResourceConfigEdit,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("devcycle_feature.test", "project_id", "622112634cabe0e9fbaf974d"),
+					resource.TestCheckResourceAttr("devcycle_feature.test", "description", "Terraform acceptance testing edited"),
+				),
+			},
+			{
 				Config:  testAccFeatureResourceConfig,
 				Destroy: true,
 			},
@@ -29,9 +36,20 @@ func TestAccFeatureResource(t *testing.T) {
 var testAccFeatureResourceConfig = `
 resource "devcycle_feature" "test" {
   project_id = "622112634cabe0e9fbaf974d"
-  name = "TerraformAccTest` + randSeq(5) + `"
-  key = "terraform-acceptance-testing` + randSeq(5) + `"
+  name = "TerraformAccTest` + randString + `"
+  key = "terraform-acceptance-testing` + randString + `"
   description = "Terraform acceptance testing"
+  type = "experiment"
+  tags = ["acceptance-testing"]
+}
+`
+
+var testAccFeatureResourceConfigEdit = `
+resource "devcycle_feature" "test" {
+  project_id = "622112634cabe0e9fbaf974d"
+  name = "TerraformAccTest` + randString + `"
+  key = "terraform-acceptance-testing` + randString + `"
+  description = "Terraform acceptance testing edited"
   type = "experiment"
   tags = ["acceptance-testing"]
 }

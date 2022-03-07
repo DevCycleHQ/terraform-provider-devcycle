@@ -19,6 +19,7 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 		return tfsdk.NewProtocol6Server(New("testing")()), nil
 	},
 }
+var randString = randSeq(5)
 
 func testAccPreCheck(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())

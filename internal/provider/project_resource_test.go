@@ -16,6 +16,13 @@ func TestAccProjectResource(t *testing.T) {
 				Config: testAccProjectResourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("devcycle_project.test", "key", testAccProjectResourceKey),
+					resource.TestCheckResourceAttr("devcycle_project.test", "description", "Terraform acceptance testing"),
+				),
+			},
+			{
+				Config: testAccProjectResourceConfigEdit,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("devcycle_project.test", "description", "Terraform acceptance testing-edit"),
 				),
 			},
 			{
@@ -26,12 +33,20 @@ func TestAccProjectResource(t *testing.T) {
 	})
 }
 
-var testAccProjectResourceKey = "terraform-acceptance-testing" + randSeq(5)
+var testAccProjectResourceKey = "terraform-acceptance-testing" + randString
 
 var testAccProjectResourceConfig = `
 resource "devcycle_project" "test" {
-  name = "TerraformAccTest` + randSeq(5) + `"
+  name = "TerraformAccTest` + randString + `"
   key = "` + testAccProjectResourceKey + `"
   description = "Terraform acceptance testing"
+}
+`
+
+var testAccProjectResourceConfigEdit = `
+resource "devcycle_project" "test" {
+  name = "TerraformAccTest` + randString + `"
+  key = "` + testAccProjectResourceKey + `"
+  description = "Terraform acceptance testing-edit"
 }
 `
