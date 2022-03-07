@@ -20,11 +20,10 @@ type provider struct {
 	// communicate with the upstream service. Resource and DataSource
 	// implementations can then make calls using this client.
 	//
-	MgmtClient   *dvc_mgmt.APIClient
-	ServerClient *dvc_server.DVCClient
-
-	AccessToken       string
-	ServerClientToken string
+	MgmtClient          *dvc_mgmt.APIClient
+	ServerClient        *dvc_server.DVCClient
+	AccessToken         string
+	ServerClientContext context.Context
 
 	// configured is set to true at the end of the Configure method.
 	// This can be used in Resource and DataSource implementations to verify
@@ -70,9 +69,13 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 		}
 	}
 	if data.ServerSDKToken.Value != "" {
-		p.ServerClientToken = data.ServerSDKToken.Value
+		p.ServerClientContext = context.WithValue(context.Background(), dvc_server.ContextAPIKey, dvc_server.APIKey{
+			Key: data.ServerSDKToken.Value,
+		})
 	} else {
-		p.ServerClientToken = os.Getenv("DEVCYCLE_SERVER_SDK_TOKEN")
+		p.ServerClientContext = context.WithValue(context.Background(), dvc_server.ContextAPIKey, dvc_server.APIKey{
+			Key: os.Getenv("DEVCYCLE_SERVER_TOKEN"),
+		})
 	}
 
 	config := dvc_mgmt.NewConfiguration()
@@ -95,10 +98,14 @@ func (p *provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceT
 
 func (p *provider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
 	return map[string]tfsdk.DataSourceType{
-		"devcycle_project":     projectDataSourceType{},
-		"devcycle_environment": environmentDataSourceType{},
-		"devcycle_feature":     featureDataSourceType{},
-		"devcycle_variable":    variableDataSourceType{},
+		"devcycle_project":                    projectDataSourceType{},
+		"devcycle_environment":                environmentDataSourceType{},
+		"devcycle_feature":                    featureDataSourceType{},
+		"devcycle_variable":                   variableDataSourceType{},
+		"devcycle_evaluated_variable_boolean": evaluatedBoolVariableDataSourceType{},
+		"devcycle_evaluated_variable_string":  evaluatedStringVariableDataSourceType{},
+		"devcycle_evaluated_variable_number":  evaluatedNumberVariableDataSourceType{},
+		"devcycle_evaluated_variable_json":    evaluatedJSONVariableDataSourceType{},
 	}, nil
 }
 

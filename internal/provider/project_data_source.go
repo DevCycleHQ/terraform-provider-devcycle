@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -79,11 +78,9 @@ func (d projectDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceReq
 	}
 
 	project, httpResponse, err := d.provider.MgmtClient.ProjectsApi.ProjectsControllerFindOne(ctx, data.Key.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read project, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
-
 	data.Name = types.String{Value: project.Name}
 	data.Key = types.String{Value: project.Key}
 	data.Organization = types.String{Value: project.Organization}

@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -143,8 +142,7 @@ func (r environmentResource) Create(ctx context.Context, req tfsdk.CreateResourc
 		Type_:       data.Type.Value,
 		Settings:    data.Settings.toCreateSDK(),
 	}, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create environment, got error: %s.\nHTTP: %s", err, httpResponse.Status))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 
@@ -182,8 +180,7 @@ func (r environmentResource) Read(ctx context.Context, req tfsdk.ReadResourceReq
 	}
 
 	environment, httpResponse, err := r.provider.MgmtClient.EnvironmentsApi.EnvironmentsControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read environment, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 	data.Id = types.String{Value: environment.Id}
@@ -222,8 +219,7 @@ func (r environmentResource) Update(ctx context.Context, req tfsdk.UpdateResourc
 		Type_:       data.Type.Value,
 		Settings:    data.Settings.toUpdateSDK(),
 	}, data.Key.Value, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update environment, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 
@@ -261,11 +257,9 @@ func (r environmentResource) Delete(ctx context.Context, req tfsdk.DeleteResourc
 	}
 
 	httpResponse, err := r.provider.MgmtClient.EnvironmentsApi.EnvironmentsControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete environment, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
-
 	resp.State.RemoveResource(ctx)
 }
 

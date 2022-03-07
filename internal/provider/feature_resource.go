@@ -241,8 +241,7 @@ func (r featureResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 		Type_:       data.Type.Value,
 		Tags:        data.Tags,
 	}, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create feature, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 
@@ -322,8 +321,7 @@ func (r featureResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 		Type_:       data.Type.Value,
 		Tags:        data.Tags,
 	}, data.Key.Value, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update feature, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 
@@ -356,9 +354,7 @@ func (r featureResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 	}
 
 	httpResponse, err := r.provider.MgmtClient.FeaturesApi.FeaturesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete feature, got error: %s", err))
-
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 

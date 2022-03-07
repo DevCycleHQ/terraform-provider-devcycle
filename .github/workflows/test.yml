@@ -62,5 +62,6 @@ jobs:
           TF_ACC: "1"
           DEVCYCLE_CLIENT_ID: ${{ secrets.DEVCYCLE_CLIENT_ID }}
           DEVCYCLE_CLIENT_SECRET: ${{ secrets.DEVCYCLE_CLIENT_SECRET }}
+          DEVCYCLE_SERVER_TOKEN: ${{ secrets.DEVCYCLE_SERVER_TOKEN }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10

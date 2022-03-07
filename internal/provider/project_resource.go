@@ -180,8 +180,7 @@ func (r projectResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 	}
 
 	httpResponse, err := r.provider.MgmtClient.ProjectsApi.ProjectsControllerRemove(ctx, data.Key.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete project, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 

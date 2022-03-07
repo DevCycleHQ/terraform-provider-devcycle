@@ -122,9 +122,7 @@ func (d variableDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceRe
 		return
 	}
 	variable, httpResponse, err := d.provider.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, data.Key.Value, data.ProjectKey.Value)
-	if err != nil || httpResponse.StatusCode != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read variable, got error: %s", err))
-		resp.Diagnostics.AddError("HTTP Logs:", fmt.Sprintf("%v", httpResponse.Request))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 	data.Id = types.String{Value: variable.Id}

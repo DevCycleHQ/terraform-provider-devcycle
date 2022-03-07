@@ -108,8 +108,7 @@ func (r variableResource) Create(ctx context.Context, req tfsdk.CreateResourceRe
 		Feature:     data.FeatureId.Value,
 		Type_:       data.Type.Value,
 	}, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create variable, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 	data.Id = types.String{Value: variable.Id}
@@ -157,8 +156,7 @@ func (r variableResource) Read(ctx context.Context, req tfsdk.ReadResourceReques
 	}
 
 	variable, httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read variable, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 	data.Id = types.String{Value: variable.Id}
@@ -205,9 +203,7 @@ func (r variableResource) Update(ctx context.Context, req tfsdk.UpdateResourceRe
 		Key:         data.Key.Value,
 		Feature:     data.FeatureId.Value,
 	}, data.Id.Value, data.ProjectId.Value)
-
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update variable, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 	data.Id = types.String{Value: variable.Id}
@@ -249,8 +245,7 @@ func (r variableResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRe
 	}
 
 	httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
-	if err != nil || (httpResponse.StatusCode > 299 || httpResponse.StatusCode < 200) {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete variable, got error: %s", err))
+	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
 	}
 
