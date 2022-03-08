@@ -11,7 +11,7 @@ resource "devcycle_environment" "demo" {
   description = "Terraform provider demo"
   color       = "#232323"
   type        = "development"
-  settings = {
+  settings    = {
     app_icon_uri = "demo"
   }
 }
@@ -23,6 +23,23 @@ resource "devcycle_feature" "demo" {
   description = "Terraform provider demo"
   type        = "experiment"
   tags        = ["terraform-demo"]
+  variables = [
+    {
+      name = "test-variable-name"
+      description = "description"
+      key = "test-variable-key"
+      type = "String"
+    }
+  ]
+  variations = [
+    {
+      key = "test-variation-key"
+      name = "test-variation-name"
+      variables = {
+        "test-variable-key" = "test-variable-value"
+      }
+    }
+  ]
 }
 
 resource "devcycle_variable" "test" {

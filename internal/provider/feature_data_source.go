@@ -105,6 +105,16 @@ func (t featureDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 						Computed:            true,
 						MarkdownDescription: "Variation type",
 					},
+					"created_at": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Created at timestamp",
+					},
+					"updated_at": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Updated at timestamp",
+					},
 				}, tfsdk.ListNestedAttributesOptions{}),
 			},
 			"id": {
@@ -165,8 +175,8 @@ func (d featureDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceReq
 	data.ProjectId = types.String{Value: feature.Project}
 	data.ProjectKey = types.String{Value: feature.Project}
 	data.Type = types.String{Value: feature.Type_}
-	data.Variations = variationToTF(feature.Variations)
 	data.Variables = variableToTF(feature.Variables)
+	data.Variations = variationToTF(feature.Variations, data.Variables)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)

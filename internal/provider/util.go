@@ -63,22 +63,6 @@ func handleDevCycleHTTP(err error, httpResponse *http.Response, resp *diag.Diagn
 	return false
 }
 
-func interfaceMapToStringMap(in map[string]interface{}) map[string]string {
-	ret := make(map[string]string)
-	for k, v := range in {
-		ret[k] = fmt.Sprintf("%v", v)
-	}
-	return ret
-}
-
-func stringMapToInterfaceMap(in map[string]string) map[string]interface{} {
-	ret := make(map[string]interface{})
-	for k, v := range in {
-		ret[k] = v
-	}
-	return ret
-}
-
 type evaluatedVariableDataSourceDataUser struct {
 	Id         types.String `tfsdk:"id"`
 	Name       types.String `tfsdk:"name"`

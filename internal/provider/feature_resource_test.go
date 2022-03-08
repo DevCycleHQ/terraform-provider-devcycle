@@ -79,6 +79,12 @@ resource "devcycle_feature" "test" {
 	  description = "description"
       key = "test-variable-key` + randString + `"
       type = "String"
+	},
+	{
+	  name = "test-variable-name` + randString + `2"
+	  description = "description"
+      key = "test-variable-key` + randString + `2"
+      type = "Number"
 	}
   ]
   variations = [
@@ -86,7 +92,8 @@ resource "devcycle_feature" "test" {
 		key = "test-variation-key` + randString + `"
 		name = "test-variation-name` + randString + `"
 		variables = {
-			"test-variable-key` + randString + `" = "test-variable-value` + randString + `"
+			"test-variable-key` + randString + `" = "2"
+			"test-variable-key` + randString + `2" = "1"
 		}
 	}
   ]

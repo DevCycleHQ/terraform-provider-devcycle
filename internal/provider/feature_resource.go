@@ -2,12 +2,16 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"sort"
+	"strconv"
 )
 
 type featureResourceType struct{}
@@ -85,6 +89,9 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 			"variables": {
 				MarkdownDescription: "Feature variables",
 				Optional:            true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.UseStateForUnknown(),
+				},
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"name": {
 						Type:                types.StringType,
@@ -115,6 +122,16 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 						Type:                types.StringType,
 						Computed:            true,
 						MarkdownDescription: "Variation type",
+					},
+					"created_at": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Created at timestamp",
+					},
+					"updated_at": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Updated at timestamp",
 					},
 				}, tfsdk.ListNestedAttributesOptions{}),
 			},
@@ -157,7 +174,7 @@ func (t featureResourceData) variationToSDK() []devcyclem.FeatureVariationDto {
 		variations = append(variations, devcyclem.FeatureVariationDto{
 			Key:       variation.Key.Value,
 			Name:      variation.Name.Value,
-			Variables: stringMapToInterfaceMap(variation.Variables),
+			Variables: variation.variationMapTypeFix(t.Variables),
 		})
 	}
 	return variations
@@ -185,6 +202,8 @@ type featureResourceDataVariable struct {
 	Description types.String `tfsdk:"description"`
 	FeatureKey  types.String `tfsdk:"feature_key"`
 	Type        types.String `tfsdk:"type"`
+	CreatedAt   types.String `tfsdk:"created_at"`
+	UpdatedAt   types.String `tfsdk:"updated_at"`
 }
 
 type featureResourceDataVariation struct {
@@ -194,17 +213,92 @@ type featureResourceDataVariation struct {
 	Variables map[string]string `tfsdk:"variables"`
 }
 
-func variationToTF(variations []devcyclem.Variation) []featureResourceDataVariation {
+func variationMapToString(variations map[string]interface{}, variables []featureResourceDataVariable) map[string]string {
+	ret := make(map[string]string)
+	for k, v := range variations {
+		for _, variable := range variables {
+			if variable.Key.Value == k {
+				switch variable.Type.Value {
+				case "String":
+					ret[k] = v.(string)
+					break
+				case "Number":
+					ret[k] = fmt.Sprintf("%f", v.(float64))
+					break
+				case "Boolean":
+					ret[k] = fmt.Sprintf("%t", v.(bool))
+					break
+				case "JSON":
+					marshal, err := json.Marshal(v)
+					if err != nil {
+						tflog.Error(context.Background(), "Error parsing json", err)
+						return nil
+					}
+					ret[k] = string(marshal)
+					break
+				}
+			}
+		}
+		ret[k] = fmt.Sprintf("%v", v)
+	}
+	return ret
+}
+
+func (f *featureResourceDataVariation) variationMapTypeFix(variables []featureResourceDataVariable) map[string]interface{} {
+	ret := make(map[string]interface{})
+
+	for k, v := range f.Variables {
+		for _, variable := range variables {
+			if variable.Key.Value == k {
+				switch variable.Type.Value {
+				case "String":
+					ret[k] = v
+					break
+				case "JSON":
+					var marshalled interface{}
+					err := json.Unmarshal([]byte(v), &marshalled)
+					if err != nil {
+						tflog.Error(context.Background(), "Error parsing json", err)
+						return nil
+					}
+					break
+				case "Number":
+					float, err := strconv.ParseFloat(v, 64)
+					if err != nil {
+						tflog.Error(context.Background(), "Error parsing float", err)
+						return nil
+					}
+					ret[k] = float
+					break
+				case "Boolean":
+					b, err := strconv.ParseBool(v)
+					if err != nil {
+						tflog.Error(context.Background(), "Error parsing bool", err)
+						return nil
+					}
+					ret[k] = b
+					break
+				}
+			}
+		}
+	}
+	return ret
+}
+
+func variationToTF(variations []devcyclem.Variation, variables []featureResourceDataVariable) []featureResourceDataVariation {
 	var ret []featureResourceDataVariation
 	for _, variation := range variations {
 		nvar := featureResourceDataVariation{
 			Key:       types.String{Value: variation.Key},
 			Name:      types.String{Value: variation.Name},
-			Variables: interfaceMapToStringMap(variation.Variables),
+			Variables: variationMapToString(variation.Variables, variables),
 			Id:        types.String{Value: variation.Id},
 		}
 		ret = append(ret, nvar)
 	}
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].Key.Value < ret[j].Key.Value
+	})
 	return ret
 }
 
@@ -218,9 +312,15 @@ func variableToTF(vars []devcyclem.Variable) []featureResourceDataVariable {
 			FeatureKey:  types.String{Value: variable.Feature},
 			Type:        types.String{Value: variable.Type_},
 			Id:          types.String{Value: variable.Id},
+			CreatedAt:   types.String{Value: variable.CreatedAt.String()},
+			UpdatedAt:   types.String{Value: variable.UpdatedAt.String()},
 		}
 		ret = append(ret, nvar)
 	}
+
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].Key.Value < ret[j].Key.Value
+	})
 	return ret
 }
 
@@ -259,8 +359,8 @@ func (r featureResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 	data.Tags = feature.Tags
 	data.ProjectId = types.String{Value: feature.Project}
 	data.Source = types.String{Value: feature.Source}
-	data.Variations = variationToTF(feature.Variations)
 	data.Variables = variableToTF(feature.Variables)
+	data.Variations = variationToTF(feature.Variations, data.Variables)
 
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
@@ -295,7 +395,7 @@ func (r featureResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	data.ProjectId = types.String{Value: feature.Project}
 	data.Source = types.String{Value: feature.Source}
 	data.Variables = variableToTF(feature.Variables)
-	data.Variations = variationToTF(feature.Variations)
+	data.Variations = variationToTF(feature.Variations, data.Variables)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -328,12 +428,12 @@ func (r featureResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 	data.Key = types.String{Value: feature.Key}
 	data.Name = types.String{Value: feature.Name}
 	data.Description = types.String{Value: feature.Description}
-	data.Variables = variableToTF(feature.Variables)
-	data.Variations = variationToTF(feature.Variations)
 	data.Type = types.String{Value: feature.Type_}
 	data.Tags = feature.Tags
 	data.ProjectId = types.String{Value: feature.Project}
 	data.Source = types.String{Value: feature.Source}
+	data.Variables = variableToTF(feature.Variables)
+	data.Variations = variationToTF(feature.Variations, data.Variables)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
