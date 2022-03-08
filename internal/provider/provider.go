@@ -16,7 +16,7 @@ import (
 // provider satisfies the tfsdk.Provider interface and usually is included
 // with all Resource and DataSource implementations.
 type provider struct {
-	MgmtClient          *dvc_mgmt.APIClient
+	MgmtClient          *dvc_mgmt.DVCClient
 	ServerClient        *dvc_server.DVCClient
 	AccessToken         string
 	ServerClientContext context.Context
