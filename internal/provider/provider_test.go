@@ -19,10 +19,11 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 		return tfsdk.NewProtocol6Server(New("testing")()), nil
 	},
 }
-var randString = randSeq(5)
+var randString = ""
 
 func testAccPreCheck(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
+	randString = randSeq(5)
 	t.Setenv("DEVCYCLE_CLIENT_ID", os.Getenv("DEVCYCLE_CLIENT_ID"))
 	t.Setenv("DEVCYCLE_CLIENT_SECRET", os.Getenv("DEVCYCLE_CLIENT_SECRET"))
 	t.Setenv("DEVCYCLE_ACCESS_TOKEN", os.Getenv("DEVCYCLE_ACCESS_TOKEN"))

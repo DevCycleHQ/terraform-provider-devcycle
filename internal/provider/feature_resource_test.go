@@ -41,6 +41,27 @@ resource "devcycle_feature" "test" {
   description = "Terraform acceptance testing"
   type = "experiment"
   tags = ["acceptance-testing"]
+  variables = [
+	{
+	  name = "test-variable-name` + randString + `"
+	  description = "description"
+      key = "test-variable-key` + randString + `"
+      type = "String"
+	}
+  ]
+  variations = [
+	{
+		key = "test-variation-key` + randString + `"
+		name = "test-variation-name` + randString + `"
+		variables = {
+			"test-variable-key` + randString + `" = "test-variable-value` + randString + `"
+		}
+	}
+  ]
+}
+
+output "testing" {
+  value = devcycle_feature.test.variables
 }
 `
 
@@ -52,5 +73,26 @@ resource "devcycle_feature" "test" {
   description = "Terraform acceptance testing edited"
   type = "experiment"
   tags = ["acceptance-testing"]
+  variables = [
+	{
+	  name = "test-variable-name` + randString + `"
+	  description = "description"
+      key = "test-variable-key` + randString + `"
+      type = "String"
+	}
+  ]
+  variations = [
+	{
+		key = "test-variation-key` + randString + `"
+		name = "test-variation-name` + randString + `"
+		variables = {
+			"test-variable-key` + randString + `" = "test-variable-value` + randString + `"
+		}
+	}
+  ]
+}
+
+output "testing" {
+  value = devcycle_feature.test.variables
 }
 `

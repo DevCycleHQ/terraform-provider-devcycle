@@ -2,10 +2,7 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
-	"strconv"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,21 +37,25 @@ func (t variableResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				MarkdownDescription: "Feature that this variable is attached to",
 				Required:            true,
 				Type:                types.StringType,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 			"project_id": {
 				MarkdownDescription: "Project id that this feature and variable is attached to",
 				Required:            true,
 				Type:                types.StringType,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 			"type": {
 				MarkdownDescription: "Variable datatype",
 				Required:            true,
 				Type:                types.StringType,
-			},
-			"default_value": {
-				MarkdownDescription: "Variable value. Will be parsed based on the type setting.",
-				Required:            true,
-				Type:                types.StringType,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 			"id": {
 				Computed:            true,
@@ -77,14 +78,13 @@ func (t variableResourceType) NewResource(ctx context.Context, in tfsdk.Provider
 }
 
 type variableResourceData struct {
-	Name         types.String `tfsdk:"name"`
-	Description  types.String `tfsdk:"description"`
-	Key          types.String `tfsdk:"key"`
-	FeatureId    types.String `tfsdk:"feature_id"`
-	ProjectId    types.String `tfsdk:"project_id"`
-	Type         types.String `tfsdk:"type"`
-	DefaultValue types.String `tfsdk:"default_value"`
-	Id           types.String `tfsdk:"id"`
+	Name        types.String `tfsdk:"name"`
+	Description types.String `tfsdk:"description"`
+	Key         types.String `tfsdk:"key"`
+	FeatureId   types.String `tfsdk:"feature_id"`
+	ProjectId   types.String `tfsdk:"project_id"`
+	Type        types.String `tfsdk:"type"`
+	Id          types.String `tfsdk:"id"`
 }
 
 type variableResource struct {
@@ -119,23 +119,6 @@ func (r variableResource) Create(ctx context.Context, req tfsdk.CreateResourceRe
 	data.FeatureId = types.String{Value: variable.Feature}
 	data.ProjectId = types.String{Value: variable.Project}
 
-	switch variable.Type_ {
-	case "String":
-		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
-		break
-	case "JSON":
-		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
-		break
-	case "Boolean":
-		fmt.Println(variable.DefaultValue)
-		out, _ := strconv.ParseBool(fmt.Sprintf("%v", variable.DefaultValue))
-		data.DefaultValue = types.String{Value: strconv.FormatBool(out)}
-		break
-	case "Number":
-		out, _ := strconv.ParseFloat(fmt.Sprintf("%v", variable.DefaultValue), 64)
-		data.DefaultValue = types.String{Value: strconv.FormatFloat(out, 'f', -1, 64)}
-		break
-	}
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
 	// for more information
@@ -167,23 +150,6 @@ func (r variableResource) Read(ctx context.Context, req tfsdk.ReadResourceReques
 	data.FeatureId = types.String{Value: variable.Feature}
 	data.ProjectId = types.String{Value: variable.Project}
 
-	switch variable.Type_ {
-	case "String":
-		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
-		break
-	case "JSON":
-		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
-		break
-	case "Boolean":
-		fmt.Println(variable.DefaultValue)
-		out, _ := strconv.ParseBool(fmt.Sprintf("%v", variable.DefaultValue))
-		data.DefaultValue = types.String{Value: strconv.FormatBool(out)}
-		break
-	case "Number":
-		out, _ := strconv.ParseFloat(fmt.Sprintf("%v", variable.DefaultValue), 64)
-		data.DefaultValue = types.String{Value: strconv.FormatFloat(out, 'f', -1, 64)}
-		break
-	}
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 }
@@ -213,23 +179,7 @@ func (r variableResource) Update(ctx context.Context, req tfsdk.UpdateResourceRe
 	data.Type = types.String{Value: variable.Type_}
 	data.FeatureId = types.String{Value: variable.Feature}
 	data.ProjectId = types.String{Value: variable.Project}
-	switch variable.Type_ {
-	case "String":
-		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
-		break
-	case "JSON":
-		data.DefaultValue = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
-		break
-	case "Boolean":
-		fmt.Println(variable.DefaultValue)
-		out, _ := strconv.ParseBool(fmt.Sprintf("%v", variable.DefaultValue))
-		data.DefaultValue = types.String{Value: strconv.FormatBool(out)}
-		break
-	case "Number":
-		out, _ := strconv.ParseFloat(fmt.Sprintf("%v", variable.DefaultValue), 64)
-		data.DefaultValue = types.String{Value: strconv.FormatFloat(out, 'f', -1, 64)}
-		break
-	}
+
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 }

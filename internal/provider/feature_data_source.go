@@ -47,37 +47,65 @@ func (t featureDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 			},
 			"variations": {
 				MarkdownDescription: "Feature variations",
-				Computed:            true,
+				Optional:            true,
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"key": {
 						Type:                types.StringType,
-						Computed:            true,
+						Required:            true,
 						MarkdownDescription: "Variation key",
 					},
 					"name": {
 						Type:                types.StringType,
-						Computed:            true,
+						Required:            true,
 						MarkdownDescription: "Variation name",
+					},
+					"variables": {
+						Type:                types.MapType{ElemType: types.StringType},
+						Required:            true,
+						MarkdownDescription: "Variation variables",
 					},
 					"id": {
 						Type:                types.StringType,
 						Computed:            true,
-						MarkdownDescription: "Variation ID",
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							tfsdk.RequiresReplace(),
-						},
-					},
-					"variables": {
-						Type:                types.MapType{ElemType: types.StringType},
-						Computed:            true,
-						MarkdownDescription: "Variation variables - force casted to a string because of nested attributes",
+						MarkdownDescription: "Variation type",
 					},
 				}, tfsdk.ListNestedAttributesOptions{}),
 			},
 			"variables": {
-				MarkdownDescription: "Feature variable ids",
-				Computed:            true,
-				Type:                types.ListType{ElemType: types.StringType},
+				MarkdownDescription: "Feature variables",
+				Optional:            true,
+				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+					"name": {
+						Type:                types.StringType,
+						Optional:            true,
+						MarkdownDescription: "Variation name",
+					},
+					"description": {
+						Type:                types.StringType,
+						Optional:            true,
+						MarkdownDescription: "Variation feature key",
+					},
+					"key": {
+						Type:                types.StringType,
+						Required:            true,
+						MarkdownDescription: "Variation key",
+					},
+					"feature_key": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Variation feature key",
+					},
+					"type": {
+						Type:                types.StringType,
+						Required:            true,
+						MarkdownDescription: "Variation type",
+					},
+					"id": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Variation type",
+					},
+				}, tfsdk.ListNestedAttributesOptions{}),
 			},
 			"id": {
 				Computed:            true,
@@ -108,7 +136,7 @@ type featureDataSourceData struct {
 	ProjectKey  types.String                   `tfsdk:"project_key"`
 	Type        types.String                   `tfsdk:"type"`
 	Variations  []featureResourceDataVariation `tfsdk:"variations"`
-	Variables   []string                       `tfsdk:"variables"`
+	Variables   []featureResourceDataVariable  `tfsdk:"variables"`
 }
 
 type featureDataSource struct {

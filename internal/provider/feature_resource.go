@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -24,7 +23,6 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 				Required:            true,
 				Type:                types.StringType,
 			},
-
 			"description": {
 				MarkdownDescription: "Feature description",
 				Required:            true,
@@ -34,6 +32,9 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 				MarkdownDescription: "Feature key",
 				Required:            true,
 				Type:                types.StringType,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 			"project_id": {
 				MarkdownDescription: "Project ID that the feature belongs to",
@@ -69,22 +70,53 @@ func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 						Required:            true,
 						MarkdownDescription: "Variation name",
 					},
-					"description": {
-						Type:                types.StringType,
-						Required:            true,
-						MarkdownDescription: "Variation description",
-					},
 					"variables": {
-						Type:                types.MapType{ElemType: types.ObjectType{}},
+						Type:                types.MapType{ElemType: types.StringType},
 						Required:            true,
 						MarkdownDescription: "Variation variables",
+					},
+					"id": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Variation type",
 					},
 				}, tfsdk.ListNestedAttributesOptions{}),
 			},
 			"variables": {
 				MarkdownDescription: "Feature variables",
 				Optional:            true,
-				Type:                types.ListType{ElemType: types.StringType},
+				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+					"name": {
+						Type:                types.StringType,
+						Optional:            true,
+						MarkdownDescription: "Variation name",
+					},
+					"description": {
+						Type:                types.StringType,
+						Optional:            true,
+						MarkdownDescription: "Variation feature key",
+					},
+					"key": {
+						Type:                types.StringType,
+						Required:            true,
+						MarkdownDescription: "Variation key",
+					},
+					"feature_key": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Variation feature key",
+					},
+					"type": {
+						Type:                types.StringType,
+						Required:            true,
+						MarkdownDescription: "Variation type",
+					},
+					"id": {
+						Type:                types.StringType,
+						Computed:            true,
+						MarkdownDescription: "Variation type",
+					},
+				}, tfsdk.ListNestedAttributesOptions{}),
 			},
 			"id": {
 				Computed:            true,
@@ -116,17 +148,16 @@ type featureResourceData struct {
 	Type        types.String                   `tfsdk:"type"`
 	Tags        []string                       `tfsdk:"tags"`
 	Variations  []featureResourceDataVariation `tfsdk:"variations"`
-	Variables   []string                       `tfsdk:"variables"`
+	Variables   []featureResourceDataVariable  `tfsdk:"variables"`
 }
 
 func (t featureResourceData) variationToSDK() []devcyclem.FeatureVariationDto {
 	var variations []devcyclem.FeatureVariationDto
 	for _, variation := range t.Variations {
 		variations = append(variations, devcyclem.FeatureVariationDto{
-			Key:  variation.Key.Value,
-			Name: variation.Name.Value,
-			// TODO: Convert type to map[string]interface{}.
-			//Variables: variation.Variables,
+			Key:       variation.Key.Value,
+			Name:      variation.Name.Value,
+			Variables: stringMapToInterfaceMap(variation.Variables),
 		})
 	}
 	return variations
@@ -134,59 +165,26 @@ func (t featureResourceData) variationToSDK() []devcyclem.FeatureVariationDto {
 
 func (t featureResourceData) variablesToSDK() []devcyclem.CreateVariableDto {
 	var variables []devcyclem.CreateVariableDto
-	for range t.Variables {
-		//TODO:
-		//nvar := devcyclem.CreateVariableDto{
-		//	Name:        variable.Name.Value,
-		//	Description: variable.Description.Value,
-		//	Key:         variable.Key.Value,
-		//	Feature:     variable.FeatureKey.Value,
-		//	Type_:       variable.Type.Value,
-		//}
-		//
-		//switch variable.Type.Value {
-		//case "string":
-		//	var x interface{} = variable.DefaultStringValue.Value
-		//	nvar.DefaultValue = &x
-		//	break
-		//case "json":
-		//	var x interface{} = variable.DefaultJsonValue.Value
-		//	nvar.DefaultValue = &x
-		//	break
-		//case "boolean":
-		//	var x interface{} = variable.DefaultBoolValue.Value
-		//	nvar.DefaultValue = &x
-		//	break
-		//case "number":
-		//	var x interface{} = variable.DefaultNumberValue.Value
-		//	nvar.DefaultValue = &x
-		//	break
-		//}
-		//
-		//variables = append(variables, nvar)
-	}
-	return variables
-}
-
-func variableToTF(vars []devcyclem.Variable) []string {
-	var variables []string
-	for _, variable := range vars {
-		variables = append(variables, variable.Id)
+	for _, variable := range t.Variables {
+		nvar := devcyclem.CreateVariableDto{
+			Name:        variable.Name.Value,
+			Description: variable.Description.Value,
+			Key:         variable.Key.Value,
+			Feature:     t.Key.Value,
+			Type_:       variable.Type.Value,
+		}
+		variables = append(variables, nvar)
 	}
 	return variables
 }
 
 type featureResourceDataVariable struct {
-	Id                 types.String `tfsdk:"id"`
-	Key                types.String `tfsdk:"key"`
-	Name               types.String `tfsdk:"name"`
-	Description        types.String `tfsdk:"description"`
-	FeatureKey         types.String `tfsdk:"feature_key"`
-	Type               types.String `tfsdk:"type"`
-	DefaultStringValue types.String `tfsdk:"default_string_value"`
-	DefaultJsonValue   types.String `tfsdk:"default_json_value"`
-	DefaultBoolValue   types.Bool   `tfsdk:"default_bool_value"`
-	DefaultNumberValue types.Number `tfsdk:"default_number_value"`
+	Id          types.String `tfsdk:"id"`
+	Key         types.String `tfsdk:"key"`
+	Name        types.String `tfsdk:"name"`
+	Description types.String `tfsdk:"description"`
+	FeatureKey  types.String `tfsdk:"feature_key"`
+	Type        types.String `tfsdk:"type"`
 }
 
 type featureResourceDataVariation struct {
@@ -202,7 +200,7 @@ func variationToTF(variations []devcyclem.Variation) []featureResourceDataVariat
 		nvar := featureResourceDataVariation{
 			Key:       types.String{Value: variation.Key},
 			Name:      types.String{Value: variation.Name},
-			Variables: mapStringInterfaceToTF(variation.Variables),
+			Variables: interfaceMapToStringMap(variation.Variables),
 			Id:        types.String{Value: variation.Id},
 		}
 		ret = append(ret, nvar)
@@ -210,10 +208,18 @@ func variationToTF(variations []devcyclem.Variation) []featureResourceDataVariat
 	return ret
 }
 
-func mapStringInterfaceToTF(input map[string]interface{}) map[string]string {
-	var ret = make(map[string]string)
-	for k, v := range input {
-		ret[k] = fmt.Sprintf("%v", v)
+func variableToTF(vars []devcyclem.Variable) []featureResourceDataVariable {
+	var ret []featureResourceDataVariable
+	for _, variable := range vars {
+		nvar := featureResourceDataVariable{
+			Key:         types.String{Value: variable.Key},
+			Name:        types.String{Value: variable.Name},
+			Description: types.String{Value: variable.Description},
+			FeatureKey:  types.String{Value: variable.Feature},
+			Type:        types.String{Value: variable.Type_},
+			Id:          types.String{Value: variable.Id},
+		}
+		ret = append(ret, nvar)
 	}
 	return ret
 }
@@ -249,13 +255,10 @@ func (r featureResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 	data.Key = types.String{Value: feature.Key}
 	data.Name = types.String{Value: feature.Name}
 	data.Description = types.String{Value: feature.Description}
-	data.Variations = variationToTF(feature.Variations)
-	data.Variables = variableToTF(feature.Variables)
 	data.Type = types.String{Value: feature.Type_}
 	data.Tags = feature.Tags
 	data.ProjectId = types.String{Value: feature.Project}
 	data.Source = types.String{Value: feature.Source}
-
 	data.Variations = variationToTF(feature.Variations)
 	data.Variables = variableToTF(feature.Variables)
 
@@ -287,15 +290,12 @@ func (r featureResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	data.Key = types.String{Value: feature.Key}
 	data.Name = types.String{Value: feature.Name}
 	data.Description = types.String{Value: feature.Description}
-	data.Variations = variationToTF(feature.Variations)
-	data.Variables = variableToTF(feature.Variables)
 	data.Type = types.String{Value: feature.Type_}
 	data.Tags = feature.Tags
 	data.ProjectId = types.String{Value: feature.Project}
 	data.Source = types.String{Value: feature.Source}
-
-	data.Variations = variationToTF(feature.Variations)
 	data.Variables = variableToTF(feature.Variables)
+	data.Variations = variationToTF(feature.Variations)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -315,10 +315,10 @@ func (r featureResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 		Name:        data.Name.Value,
 		Key:         data.Key.Value,
 		Description: data.Description.Value,
-		Variations:  data.variationToSDK(),
-		Variables:   data.variablesToSDK(),
 		Type_:       data.Type.Value,
 		Tags:        data.Tags,
+		Variables:   data.variablesToSDK(),
+		Variations:  data.variationToSDK(),
 	}, data.Key.Value, data.ProjectId.Value)
 	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
@@ -328,15 +328,12 @@ func (r featureResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 	data.Key = types.String{Value: feature.Key}
 	data.Name = types.String{Value: feature.Name}
 	data.Description = types.String{Value: feature.Description}
-	data.Variations = variationToTF(feature.Variations)
 	data.Variables = variableToTF(feature.Variables)
+	data.Variations = variationToTF(feature.Variations)
 	data.Type = types.String{Value: feature.Type_}
 	data.Tags = feature.Tags
 	data.ProjectId = types.String{Value: feature.Project}
 	data.Source = types.String{Value: feature.Source}
-
-	data.Variations = variationToTF(feature.Variations)
-	data.Variables = variableToTF(feature.Variables)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -352,6 +349,12 @@ func (r featureResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 		return
 	}
 
+	for _, variable := range data.Variables {
+		httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, variable.Id.Value, data.ProjectId.Value)
+		if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
+			return
+		}
+	}
 	httpResponse, err := r.provider.MgmtClient.FeaturesApi.FeaturesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
 	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return

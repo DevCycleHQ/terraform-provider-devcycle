@@ -2,12 +2,9 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"math/big"
-	"strconv"
 )
 
 type variableDataSourceType struct{}
@@ -37,6 +34,9 @@ func (t variableDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				MarkdownDescription: "Project key",
 				Required:            true,
 				Type:                types.StringType,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 			"id": {
 				MarkdownDescription: "Variable Id",
@@ -61,26 +61,6 @@ func (t variableDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				Computed:            true,
 				Type:                types.StringType,
 			},
-			"stringvalue": {
-				MarkdownDescription: "Variable value if the type is string",
-				Computed:            true,
-				Type:                types.StringType,
-			},
-			"jsonvalue": {
-				MarkdownDescription: "Variable value if the type is json",
-				Computed:            true,
-				Type:                types.StringType,
-			},
-			"boolvalue": {
-				MarkdownDescription: "Variable value if the type is boolean",
-				Computed:            true,
-				Type:                types.BoolType,
-			},
-			"numvalue": {
-				MarkdownDescription: "Variable value if the type is number",
-				Computed:            true,
-				Type:                types.NumberType,
-			},
 		},
 	}, nil
 }
@@ -94,18 +74,14 @@ func (t variableDataSourceType) NewDataSource(ctx context.Context, in tfsdk.Prov
 }
 
 type variableDataSourceData struct {
-	Name               types.String `tfsdk:"name"`
-	Description        types.String `tfsdk:"description"`
-	Key                types.String `tfsdk:"key"`
-	FeatureId          types.String `tfsdk:"feature_id"`
-	ProjectId          types.String `tfsdk:"project_id"`
-	ProjectKey         types.String `tfsdk:"project_key"`
-	Type               types.String `tfsdk:"type"`
-	DefaultValueBool   types.Bool   `tfsdk:"boolvalue"`
-	DefaultValueString types.String `tfsdk:"stringvalue"`
-	DefaultValueJson   types.String `tfsdk:"jsonvalue"`
-	DefaultValueNum    types.Number `tfsdk:"numvalue"`
-	Id                 types.String `tfsdk:"id"`
+	Name        types.String `tfsdk:"name"`
+	Description types.String `tfsdk:"description"`
+	Key         types.String `tfsdk:"key"`
+	FeatureId   types.String `tfsdk:"feature_id"`
+	ProjectId   types.String `tfsdk:"project_id"`
+	ProjectKey  types.String `tfsdk:"project_key"`
+	Type        types.String `tfsdk:"type"`
+	Id          types.String `tfsdk:"id"`
 }
 
 type variableDataSource struct {
@@ -133,23 +109,6 @@ func (d variableDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceRe
 	data.FeatureId = types.String{Value: variable.Feature}
 	data.ProjectId = types.String{Value: variable.Project}
 
-	switch variable.Type_ {
-	case "String":
-		data.DefaultValueString = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
-		break
-	case "JSON":
-		data.DefaultValueJson = types.String{Value: fmt.Sprintf("%v", variable.DefaultValue)}
-		break
-	case "Boolean":
-		fmt.Println(variable.DefaultValue)
-		out, _ := strconv.ParseBool(fmt.Sprintf("%v", variable.DefaultValue))
-		data.DefaultValueBool = types.Bool{Value: out}
-		break
-	case "Number":
-		out, _, _ := big.ParseFloat(fmt.Sprintf("%v", variable.DefaultValue), 64, 0, big.ToZero)
-		data.DefaultValueNum = types.Number{Value: out}
-		break
-	}
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 }
