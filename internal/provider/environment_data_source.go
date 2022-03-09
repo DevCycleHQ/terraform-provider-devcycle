@@ -12,7 +12,7 @@ type environmentDataSourceType struct{}
 func (t environmentDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: `DevCycle Environment Data Source.`,
+		MarkdownDescription: `DevCycle Environment Data Source. Read data from a given DevCycle Environment. R`,
 
 		Attributes: map[string]tfsdk.Attribute{
 			"project_id": {

@@ -12,7 +12,7 @@ type projectDataSourceType struct{}
 func (t projectDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "DevCycle Project data source",
+		MarkdownDescription: "DevCycle Project data source.",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"key": {

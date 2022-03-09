@@ -15,7 +15,7 @@ type evaluatedJSONVariableDataSourceType struct{}
 func (t evaluatedJSONVariableDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Evaluated Variable data source.",
+		MarkdownDescription: "Evaluated Variable data source. Each instance of this data source represents a single evaluated variable, under a single userdata context.",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"user": userDataSchema(),
@@ -25,7 +25,7 @@ func (t evaluatedJSONVariableDataSourceType) GetSchema(ctx context.Context) (tfs
 				Type:                types.StringType,
 			},
 			"default_value": {
-				MarkdownDescription: "Default value of the Variable",
+				MarkdownDescription: "Default value of the Variable. Used as a fallback in case there is no variation value set.",
 				Required:            true,
 				Type:                types.StringType,
 			},

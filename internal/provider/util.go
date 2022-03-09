@@ -20,7 +20,7 @@ func randSeq(n int) string {
 
 func userDataSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		MarkdownDescription: "User data to drive bucketing into variations",
+		MarkdownDescription: "User data to drive bucketing into variations for feature flag evaluations.",
 		Required:            true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"id": {

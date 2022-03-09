@@ -19,7 +19,7 @@ type featureResourceType struct{}
 func (t featureResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "DevCycle Feature resource",
+		MarkdownDescription: "DevCycle Feature resource. It's recommended to use the variable resource instead of this resource to manage variables. Variations currently have to be managed in this resource.",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"name": {

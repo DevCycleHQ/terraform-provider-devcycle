@@ -16,7 +16,7 @@ type environmentResourceType struct{}
 func (t environmentResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "DevCycle Environment resource",
+		MarkdownDescription: "DevCycle Environment resource. This resource is used to create and manage DevCycle environments.",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"project_id": {

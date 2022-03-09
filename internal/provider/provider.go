@@ -112,22 +112,24 @@ func (p *provider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSou
 
 func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		MarkdownDescription: "This provider allows you to manage DevCycle projects, environments, features, and variables. It uses the DevCycle API to manage these resources.  You can find more information about the DevCycle API [here](https://docs.devcycle.com/management-api/)." +
+			"\n\n" + "This provider is compatible with Terraform v1.0 and newer. Because of the way that authentication for the management api works - this provider will have access to manage all projects within a DevCycle org. Be careful!",
 		Attributes: map[string]tfsdk.Attribute{
 			"client_id": {
-				MarkdownDescription: "API Authentication Client ID",
+				MarkdownDescription: "API Authentication Client ID. Found in your DevCycle account settings.",
 				Optional:            true,
 				Sensitive:           true,
 				Type:                types.StringType,
 			},
 			"client_secret": {
-				MarkdownDescription: "API Authentication Client Secret",
+				MarkdownDescription: "API Authentication Client Secret. Found in your DevCycle account settings.",
 				Optional:            true,
 				Sensitive:           true,
 				Type:                types.StringType,
 			},
 			"server_sdk_token": {
 				Type:                types.StringType,
-				MarkdownDescription: "Server SDK Token",
+				MarkdownDescription: "Server SDK Token. This is specific to a given project, and an environment. Used to identify and authenticate server sdk requests to evaluate feature flags.",
 				Sensitive:           true,
 				Optional:            true,
 			},
