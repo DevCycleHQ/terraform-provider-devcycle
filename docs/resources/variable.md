@@ -29,7 +29,6 @@ resource "devcycle_variable" "test" {
 
 ### Required
 
-- **default_value** (String) Variable value. Will be parsed based on the type setting.
 - **description** (String) Variable description
 - **feature_id** (String) Feature that this variable is attached to
 - **key** (String) Variable key

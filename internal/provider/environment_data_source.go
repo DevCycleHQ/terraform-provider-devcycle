@@ -12,7 +12,7 @@ type environmentDataSourceType struct{}
 func (t environmentDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "DevCycle Environment Data Source",
+		MarkdownDescription: `DevCycle Environment Data Source.`,
 
 		Attributes: map[string]tfsdk.Attribute{
 			"project_id": {
@@ -21,7 +21,7 @@ func (t environmentDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema,
 				Type:                types.StringType,
 			},
 			"project_key": {
-				MarkdownDescription: "Project key of the project to which the environment belongs",
+				MarkdownDescription: "Project key or id of the project to which the environment belongs",
 				Required:            true,
 				Type:                types.StringType,
 			},
@@ -93,7 +93,13 @@ type environmentDataSource struct {
 
 func (d environmentDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
 	var data environmentDataSourceData
-
+	if !d.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 

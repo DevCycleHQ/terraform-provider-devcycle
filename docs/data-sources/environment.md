@@ -3,12 +3,12 @@
 page_title: "devcycle_environment Data Source - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  DevCycle Environment Data Source
+  DevCycle Environment Data Source.
 ---
 
 # devcycle_environment (Data Source)
 
-DevCycle Environment Data Source
+DevCycle Environment Data Source.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ data "devcycle_environment" "test" {
 ### Required
 
 - **key** (String) Environment Key (Human readable id)
-- **project_key** (String) Project key of the project to which the environment belongs
+- **project_key** (String) Project key or id of the project to which the environment belongs
 
 ### Read-Only
 

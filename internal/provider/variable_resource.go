@@ -93,7 +93,13 @@ type variableResource struct {
 
 func (r variableResource) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
 	var data variableResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
@@ -130,7 +136,13 @@ func (r variableResource) Create(ctx context.Context, req tfsdk.CreateResourceRe
 
 func (r variableResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
 	var data variableResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
@@ -156,7 +168,13 @@ func (r variableResource) Read(ctx context.Context, req tfsdk.ReadResourceReques
 
 func (r variableResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
 	var data variableResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
@@ -186,7 +204,13 @@ func (r variableResource) Update(ctx context.Context, req tfsdk.UpdateResourceRe
 
 func (r variableResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
 	var data variableResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 

@@ -29,15 +29,11 @@ data "devcycle_variable" "test" {
 
 ### Read-Only
 
-- **boolvalue** (Boolean) Variable value if the type is boolean
 - **description** (String) Variable description
 - **feature_id** (String) Feature ID
 - **id** (String) Variable Id
-- **jsonvalue** (String) Variable value if the type is json
 - **name** (String) Variable name
-- **numvalue** (Number) Variable value if the type is number
 - **project_id** (String) Project ID
-- **stringvalue** (String) Variable value if the type is string
 - **type** (String) Variable type
 
 

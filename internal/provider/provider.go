@@ -37,7 +37,6 @@ type providerData struct {
 	ServerSDKToken types.String `tfsdk:"server_sdk_token"`
 	ClientId       types.String `tfsdk:"client_id"`
 	ClientSecret   types.String `tfsdk:"client_secret"`
-	AccessToken    types.String `tfsdk:"access_token"`
 }
 
 func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
@@ -50,8 +49,13 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 		return
 	}
 
-	if data.AccessToken.Value != "" {
-		p.AccessToken = data.AccessToken.Value
+	if data.ClientId.Value != "" && data.ClientSecret.Value != "" {
+		auth, err := dvc_oauth.GetAuthToken(data.ClientId.Value, data.ClientSecret.Value)
+		if err != nil {
+			p.configured = false
+			return
+		}
+		p.AccessToken = auth.AccessToken
 	} else {
 		clientId := os.Getenv("DEVCYCLE_CLIENT_ID")
 		clientSecret := os.Getenv("DEVCYCLE_CLIENT_SECRET")
@@ -64,6 +68,7 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 			p.AccessToken = auth.AccessToken
 		}
 	}
+
 	if data.ServerSDKToken.Value != "" {
 		p.ServerClientContext = context.WithValue(context.Background(), dvc_server.ContextAPIKey, dvc_server.APIKey{
 			Key: data.ServerSDKToken.Value,
@@ -116,12 +121,6 @@ func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostic
 			},
 			"client_secret": {
 				MarkdownDescription: "API Authentication Client Secret",
-				Optional:            true,
-				Sensitive:           true,
-				Type:                types.StringType,
-			},
-			"access_token": {
-				MarkdownDescription: "API Authentication Access Token",
 				Optional:            true,
 				Sensitive:           true,
 				Type:                types.StringType,

@@ -37,7 +37,7 @@ resource "devcycle_feature" "test" {
 ### Optional
 
 - **tags** (List of String) Feature tags
-- **variables** (List of String) Feature variables
+- **variables** (Attributes List) Feature variables (see [below for nested schema](#nestedatt--variables))
 - **variations** (Attributes List) Feature variations (see [below for nested schema](#nestedatt--variations))
 
 ### Read-Only
@@ -45,19 +45,29 @@ resource "devcycle_feature" "test" {
 - **id** (String) Feature ID
 - **source** (String) Source of Feature creation
 
+<a id="nestedatt--variables"></a>
+### Nested Schema for `variables`
+
+Optional:
+
+- **created_at** (String) Created at timestamp
+- **description** (String) Variation feature key
+- **feature_key** (String) Variation feature key
+- **id** (String) Variation type
+- **key** (String) Variation key
+- **name** (String) Variation name
+- **type** (String) Variation type
+- **updated_at** (String) Updated at timestamp
+
+
 <a id="nestedatt--variations"></a>
 ### Nested Schema for `variations`
 
 Optional:
 
-- **description** (String) Variation description
+- **id** (String) Variation type
 - **key** (String) Variation key
 - **name** (String) Variation name
-- **variables** (Map of Object) Variation variables (see [below for nested schema](#nestedatt--variations--variables))
-
-<a id="nestedatt--variations--variables"></a>
-### Nested Schema for `variations.variables`
-
-Optional:
+- **variables** (Map of String) Variation variables
 
 

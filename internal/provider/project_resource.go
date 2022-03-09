@@ -112,7 +112,13 @@ func (r projectResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 
 func (r projectResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
 	var data projectResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
@@ -136,7 +142,13 @@ func (r projectResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 
 func (r projectResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
 	var data projectResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
@@ -164,7 +176,13 @@ func (r projectResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 
 func (r projectResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
 	var data projectResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 

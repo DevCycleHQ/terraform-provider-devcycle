@@ -27,6 +27,11 @@ data "devcycle_feature" "test" {
 - **key** (String) Feature key
 - **project_key** (String) Project key that the feature belongs to
 
+### Optional
+
+- **variables** (Attributes List) Feature variables (see [below for nested schema](#nestedatt--variables))
+- **variations** (Attributes List) Feature variations (see [below for nested schema](#nestedatt--variations))
+
 ### Read-Only
 
 - **description** (String) Feature description
@@ -34,17 +39,30 @@ data "devcycle_feature" "test" {
 - **name** (String) Feature name
 - **project_id** (String) Project ID that the feature belongs to
 - **type** (String) Feature Type
-- **variables** (List of String) Feature variable ids
-- **variations** (Attributes List) Feature variations (see [below for nested schema](#nestedatt--variations))
+
+<a id="nestedatt--variables"></a>
+### Nested Schema for `variables`
+
+Optional:
+
+- **created_at** (String) Created at timestamp
+- **description** (String) Variation feature key
+- **feature_key** (String) Variation feature key
+- **id** (String) Variation type
+- **key** (String) Variation key
+- **name** (String) Variation name
+- **type** (String) Variation type
+- **updated_at** (String) Updated at timestamp
+
 
 <a id="nestedatt--variations"></a>
 ### Nested Schema for `variations`
 
-Read-Only:
+Optional:
 
-- **id** (String) Variation ID
+- **id** (String) Variation type
 - **key** (String) Variation key
 - **name** (String) Variation name
-- **variables** (Map of String) Variation variables - force casted to a string because of nested attributes
+- **variables** (Map of String) Variation variables
 
 

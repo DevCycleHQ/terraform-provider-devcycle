@@ -24,7 +24,6 @@ provider "devcycle" {
 
 ### Optional
 
-- **access_token** (String, Sensitive) API Authentication Access Token
 - **client_id** (String, Sensitive) API Authentication Client ID
 - **client_secret** (String, Sensitive) API Authentication Client Secret
 - **server_sdk_token** (String, Sensitive) Server SDK Token

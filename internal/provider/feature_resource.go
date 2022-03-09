@@ -337,6 +337,13 @@ func (r featureResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 
 	feature, httpResponse, err := r.provider.MgmtClient.FeaturesApi.FeaturesControllerCreate(ctx, devcyclem.CreateFeatureDto{
 		Name:        data.Name.Value,
@@ -373,7 +380,13 @@ func (r featureResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 
 func (r featureResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
 	var data featureResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
@@ -403,7 +416,13 @@ func (r featureResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 
 func (r featureResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
 	var data featureResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.Plan.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
@@ -441,7 +460,13 @@ func (r featureResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 
 func (r featureResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
 	var data featureResourceData
-
+	if !r.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 

@@ -155,7 +155,13 @@ type featureDataSource struct {
 
 func (d featureDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
 	var data featureDataSourceData
-
+	if !d.provider.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. Authentication is required to be configured.",
+		)
+		return
+	}
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
