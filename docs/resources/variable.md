@@ -29,15 +29,15 @@ resource "devcycle_variable" "test" {
 
 ### Required
 
-- **description** (String) Variable description
-- **feature_id** (String) Feature that this variable is attached to
-- **key** (String) Variable key
-- **name** (String) Variable name
-- **project_id** (String) Project id that this feature and variable is attached to
-- **type** (String) Variable datatype
+- `description` (String) Variable description
+- `feature_id` (String) Feature that this variable is attached to
+- `key` (String) Variable key
+- `name` (String) Variable name
+- `project_id` (String) Project id that this feature and variable is attached to
+- `type` (String) Variable datatype
 
 ### Read-Only
 
-- **id** (String) Variable ID
+- `id` (String) Variable ID
 
 

@@ -3,14 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
-	"os"
-
 	dvc_mgmt "github.com/devcyclehq/go-mgmt-sdk"
 	dvc_server "github.com/devcyclehq/go-server-sdk"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
+	"os"
 )
 
 // provider satisfies the tfsdk.Provider interface and usually is included
@@ -81,6 +80,9 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 
 	config := dvc_mgmt.NewConfiguration()
 	config.AddDefaultHeader("Authorization", p.AccessToken)
+	config.AddDefaultHeader("dvc-referrer", "terraform")
+	metadata := fmt.Sprintf("{\"dvc_terraform_provider_version\": \"%s\", \"terraform_version\": \"%s\"}", p.version, req.TerraformVersion)
+	config.AddDefaultHeader("dvc-referrer-metadata", metadata)
 	config.BasePath = "https://api.devcycle.com"
 	config.UserAgent = "terraform-provider-devcycle"
 	p.MgmtClient = dvc_mgmt.NewAPIClient(config)

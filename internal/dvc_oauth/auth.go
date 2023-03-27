@@ -2,7 +2,7 @@ package dvc_oauth
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -25,7 +25,7 @@ func GetAuthToken(clientId, clientSecret string) (Auth0, error) {
 	res, _ := http.DefaultClient.Do(req)
 
 	defer res.Body.Close()
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 	var auth Auth0
 	err := json.Unmarshal(body, &auth)
 	if err != nil {

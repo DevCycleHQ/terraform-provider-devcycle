@@ -25,13 +25,13 @@ resource "devcycle_project" "test" {
 
 ### Required
 
-- **description** (String) Description of the project
-- **key** (String) Project key, usually the lowercase, kebab case name of the project
-- **name** (String) Name of the project
+- `description` (String) Description of the project
+- `key` (String) Project key, usually the lowercase, kebab case name of the project
+- `name` (String) Name of the project
 
 ### Read-Only
 
-- **id** (String) Project Id
-- **organization** (String) Organization that the project belongs to
+- `id` (String) Project Id
+- `organization` (String) Organization that the project belongs to
 
 
