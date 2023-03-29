@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
 	"os"
 
 	dvc_mgmt "github.com/devcyclehq/go-mgmt-sdk"
@@ -11,7 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
 )
+
+var bucketingApiUrl = "https://bucketing-api.devcycle.com"
 
 // provider satisfies the tfsdk.Provider interface and usually is included
 // with all Resource and DataSource implementations.
@@ -81,10 +83,14 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 
 	config := dvc_mgmt.NewConfiguration()
 	config.AddDefaultHeader("Authorization", p.AccessToken)
+	config.AddDefaultHeader("dvc-referrer", "terraform")
+	metadata := fmt.Sprintf("{\"dvc_terraform_provider_version\": \"%s\", \"terraform_version\": \"%s\"}", p.version, req.TerraformVersion)
+	config.AddDefaultHeader("dvc-referrer-metadata", metadata)
 	config.BasePath = "https://api.devcycle.com"
 	config.UserAgent = "terraform-provider-devcycle"
 	p.MgmtClient = dvc_mgmt.NewAPIClient(config)
 	p.ServerClient = dvc_server.NewDVCClient()
+	p.ServerClient.ChangeBasePath(bucketingApiUrl)
 	p.configured = true
 }
 

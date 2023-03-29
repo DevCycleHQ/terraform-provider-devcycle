@@ -29,10 +29,6 @@ go mod tidy
 
 Then commit the changes to `go.mod` and `go.sum`.
 
-## Using the provider
-
-Fill this in for each provider
-
 ## Developing the Provider
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
@@ -41,10 +37,14 @@ To compile the provider, run `go install`. This will build the provider and put 
 
 To generate or update documentation, run `go generate`.
 
-In order to run the full suite of Acceptance tests, run `make testacc`.
+
+## Testing  the Provider
+Tests use the Hashicorp [Terraform Acceptance Tests](https://developer.hashicorp.com/terraform/plugin/sdkv2/testing/acceptance-tests).
+The test suite also requires the correct DevCycle ids and secrets to run.
+
+In order to run the full suite of Acceptance tests locally run:
+```shell
+make testacc DEVCYCLE_CLIENT_ID=<id> DEVCYCLE_CLIENT_SECRET=<secret> DEVCYCLE_SERVER_TOKEN=<token>
+```
 
 *Note:* Acceptance tests create real resources, and often cost money to run.
-
-```shell
-make testacc
-```

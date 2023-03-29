@@ -24,16 +24,16 @@ data "devcycle_variable" "test" {
 
 ### Required
 
-- **key** (String) Variable key
-- **project_key** (String) Project key
+- `key` (String) Variable key
+- `project_key` (String) Project key
 
 ### Read-Only
 
-- **description** (String) Variable description
-- **feature_id** (String) Feature ID
-- **id** (String) Variable Id
-- **name** (String) Variable name
-- **project_id** (String) Project ID
-- **type** (String) Variable type
+- `description` (String) Variable description
+- `feature_id` (String) Feature ID
+- `id` (String) Variable Id
+- `name` (String) Variable name
+- `project_id` (String) Project ID
+- `type` (String) Variable type
 
 

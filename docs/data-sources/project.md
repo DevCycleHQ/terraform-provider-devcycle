@@ -3,12 +3,12 @@
 page_title: "devcycle_project Data Source - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  DevCycle Project data source
+  DevCycle Project data source.
 ---
 
 # devcycle_project (Data Source)
 
-DevCycle Project data source
+DevCycle Project data source.
 
 ## Example Usage
 
@@ -23,16 +23,16 @@ data "devcycle_project" "test" {
 
 ### Required
 
-- **key** (String) Project key, usually the lowercase, kebab case name of the project
+- `key` (String) Project key, usually the lowercase, kebab case name of the project
 
 ### Optional
 
-- **id** (String) Project Id
+- `id` (String) Project Id
 
 ### Read-Only
 
-- **description** (String) Project description
-- **name** (String) Project name
-- **organization** (String) Project org id
+- `description` (String) Project description
+- `name` (String) Project name
+- `organization` (String) Project org id
 
 

@@ -3,12 +3,12 @@
 page_title: "devcycle_environment Data Source - terraform-provider-devcycle"
 subcategory: ""
 description: |-
-  DevCycle Environment Data Source.
+  DevCycle Environment Data Source. Read data from a given DevCycle Environment. R
 ---
 
 # devcycle_environment (Data Source)
 
-DevCycle Environment Data Source.
+DevCycle Environment Data Source. Read data from a given DevCycle Environment. R
 
 ## Example Usage
 
@@ -24,17 +24,17 @@ data "devcycle_environment" "test" {
 
 ### Required
 
-- **key** (String) Environment Key (Human readable id)
-- **project_key** (String) Project key or id of the project to which the environment belongs
+- `key` (String) Environment Key (Human readable id)
+- `project_key` (String) Project key or id of the project to which the environment belongs
 
 ### Read-Only
 
-- **color** (String) Environment Color in Hex with leading #
-- **description** (String) Environment Description
-- **id** (String) Environment Id
-- **name** (String) Environment Name
-- **project_id** (String) Project id of the project to which the environment belongs.
-- **sdk_keys** (List of String) SDK Keys for the environment
-- **type** (String) Environment Type
+- `color` (String) Environment Color in Hex with leading #
+- `description` (String) Environment Description
+- `id` (String) Environment Id
+- `name` (String) Environment Name
+- `project_id` (String) Project id of the project to which the environment belongs.
+- `sdk_keys` (List of String) SDK Keys for the environment
+- `type` (String) Environment Type
 
 
