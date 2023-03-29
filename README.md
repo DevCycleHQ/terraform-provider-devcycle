@@ -48,5 +48,3 @@ make testacc DEVCYCLE_CLIENT_ID=<id> DEVCYCLE_CLIENT_SECRET=<secret> DEVCYCLE_SE
 ```
 
 *Note:* Acceptance tests create real resources, and often cost money to run.
-
-
