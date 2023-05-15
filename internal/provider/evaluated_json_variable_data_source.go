@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	dvc_server "github.com/devcyclehq/go-server-sdk"
+	dvc_server "github.com/devcyclehq/go-server-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -76,23 +76,22 @@ func (d evaluatedJSONVariableDataSource) Read(ctx context.Context, req tfsdk.Rea
 		return
 	}
 
-	userData := dvc_server.UserData{
+	userData := dvc_server.User{
 		UserId: "" + data.User.Id.Value,
 	}
 
-	variable, err := d.provider.ServerClient.DevcycleApi.Variable(d.provider.ServerClientContext, userData, data.Id.Value, data.DefaultValue.Value)
+	variable, err := d.provider.ServerClient.Variable(userData, data.Id.Value, data.DefaultValue.Value)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
 		return
 	}
 
-	jsonstring, err := json.Marshal(*variable.Value)
+	jsonstring, err := json.Marshal(variable.Value)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
 		return
 	}
 
-	data.Id = types.String{Value: variable.Id}
 	data.Value = types.String{Value: string(jsonstring)}
 
 	diags = resp.State.Set(ctx, &data)

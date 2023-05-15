@@ -6,7 +6,7 @@ import (
 	"os"
 
 	dvc_mgmt "github.com/devcyclehq/go-mgmt-sdk"
-	dvc_server "github.com/devcyclehq/go-server-sdk"
+	dvc_server "github.com/devcyclehq/go-server-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,6 +43,7 @@ type providerData struct {
 
 func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
 	var data providerData
+	var err error
 
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -89,7 +90,10 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 	config.BasePath = "https://api.devcycle.com"
 	config.UserAgent = "terraform-provider-devcycle"
 	p.MgmtClient = dvc_mgmt.NewAPIClient(config)
-	p.ServerClient = dvc_server.NewDVCClient()
+	dvcOptions := dvc_server.Options{
+		EnableCloudBucketing:         true,
+	}
+	p.ServerClient, err = dvc_server.NewDVCClient(os.Getenv("DEVCYCLE_SERVER_TOKEN"), &dvcOptions)
 	p.ServerClient.ChangeBasePath(bucketingApiUrl)
 	p.configured = true
 }
