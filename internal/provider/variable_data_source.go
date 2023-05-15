@@ -39,7 +39,7 @@ func (t variableDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				},
 			},
 			"id": {
-				MarkdownDescription: "Variable Id",
+				MarkdownDescription: "Variable Key",
 				Computed:            true,
 				Type:                types.StringType,
 				PlanModifiers: tfsdk.AttributePlanModifiers{

@@ -52,7 +52,7 @@ func (t environmentDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema,
 			},
 			"id": {
 				Computed:            true,
-				MarkdownDescription: "Environment Id",
+				MarkdownDescription: "Environment Key",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
