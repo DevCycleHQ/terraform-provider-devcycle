@@ -79,8 +79,8 @@ func (d evaluatedNumberVariableDataSource) Read(ctx context.Context, req tfsdk.R
 	userData := dvc_server.DVCUser{
 		UserId: "" + data.User.Id.Value,
 	}
-
-	variable, err := d.provider.ServerClient.Variable(userData, data.Key.Value, data.DefaultValue.Value)
+	defaultValue, _ := data.DefaultValue.Value.Float64()
+	variable, err := d.provider.ServerClient.Variable(userData, data.Key.Value, defaultValue)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
 		return
