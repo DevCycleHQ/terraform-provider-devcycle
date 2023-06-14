@@ -86,11 +86,11 @@ func (d evaluatedJSONVariableDataSource) Read(ctx context.Context, req tfsdk.Rea
 	}
 
 	defaultValueJSON := []byte(data.DefaultValue.Value)
-	var defaultValue interface{}
+	var defaultValue map[string]any
 	err := json.Unmarshal(defaultValueJSON, &defaultValue)
 	if err != nil {
 		resp.Diagnostics.AddError("JSON Serialization Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
-
+		return
 	}
 	variable, err := d.provider.ServerClient.Variable(userData, data.Key.Value, defaultValue)
 	if err != nil {

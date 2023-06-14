@@ -15,7 +15,7 @@ func TestAccEvaluatedJSONFeatureDataSource(t *testing.T) {
 			{
 				Config: testAccEvaluatedJSONVariableDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.devcycle_evaluated_variable_json.test", "value", "{}"),
+					resource.TestCheckResourceAttr("data.devcycle_evaluated_variable_json.test", "value", "{\"object\":true}"),
 				),
 			},
 		},
@@ -28,6 +28,6 @@ data "devcycle_evaluated_variable_json" "test" {
   user = {
 	id = "acceptancetesting"
   }
-  default_value = "[]"
+  default_value = "{}"
 }
 `
