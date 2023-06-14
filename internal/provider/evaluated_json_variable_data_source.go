@@ -37,6 +37,10 @@ func (t evaluatedJSONVariableDataSourceType) GetSchema(ctx context.Context) (tfs
 				},
 				Type: types.StringType,
 			},
+			"id": {
+				Computed: true,
+				Type:     types.StringType,
+			},
 		},
 	}, nil
 }
@@ -54,6 +58,7 @@ type evaluatedJSONVariableDataSourceData struct {
 	Value        types.String                        `tfsdk:"value"`
 	User         evaluatedVariableDataSourceDataUser `tfsdk:"user"`
 	DefaultValue types.String                        `tfsdk:"default_value"`
+	Id           types.String                        `tfsdk:"id"`
 }
 
 type evaluatedJSONVariableDataSource struct {

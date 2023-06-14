@@ -36,6 +36,10 @@ func (t evaluatedBoolVariableDataSourceType) GetSchema(ctx context.Context) (tfs
 				},
 				Type: types.StringType,
 			},
+			"id": {
+				Computed: true,
+				Type:     types.StringType,
+			},
 		},
 	}, nil
 }
@@ -53,6 +57,7 @@ type evaluatedBooleanVariableDataSourceData struct {
 	Value        types.Bool                          `tfsdk:"value"`
 	User         evaluatedVariableDataSourceDataUser `tfsdk:"user"`
 	DefaultValue types.Bool                          `tfsdk:"default_value"`
+	Id           types.String                        `tfsdk:"id"`
 }
 
 type evaluatedBooleanVariableDataSource struct {

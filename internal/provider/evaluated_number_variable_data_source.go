@@ -37,6 +37,10 @@ func (t evaluatedNumberVariableDataSourceType) GetSchema(ctx context.Context) (t
 				},
 				Type: types.StringType,
 			},
+			"id": {
+				Computed: true,
+				Type:     types.StringType,
+			},
 		},
 	}, nil
 }
@@ -54,6 +58,7 @@ type evaluatedNumberVariableDataSourceData struct {
 	Value        types.Number                        `tfsdk:"value"`
 	User         evaluatedVariableDataSourceDataUser `tfsdk:"user"`
 	DefaultValue types.Number                        `tfsdk:"default_value"`
+	Id           types.String                        `tfsdk:"id"`
 }
 
 type evaluatedNumberVariableDataSource struct {
