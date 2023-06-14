@@ -29,7 +29,7 @@ func (t evaluatedJSONVariableDataSourceType) GetSchema(ctx context.Context) (tfs
 				Required:            true,
 				Type:                types.StringType,
 			},
-			"id": {
+			"key": {
 				Required:            true,
 				MarkdownDescription: "Variable ID or key. Recommended to use the key when not managing an entire project in Terraform.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
