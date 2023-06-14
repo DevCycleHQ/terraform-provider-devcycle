@@ -28,6 +28,6 @@ data "devcycle_evaluated_variable_number" "test" {
   user = {
 	id = "acceptancetesting"
   }
-  default_value = 0
+  default_value = 1
 }
 `
