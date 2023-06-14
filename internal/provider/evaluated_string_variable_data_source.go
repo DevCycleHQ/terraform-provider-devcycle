@@ -91,6 +91,7 @@ func (d evaluatedStringVariableDataSource) Read(ctx context.Context, req tfsdk.R
 	}
 
 	data.Key = types.String{Value: variable.Key}
+	data.Id = data.Key
 	data.Value = types.String{Value: variable.Value.(string)}
 
 	diags = resp.State.Set(ctx, &data)

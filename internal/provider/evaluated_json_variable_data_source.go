@@ -98,6 +98,8 @@ func (d evaluatedJSONVariableDataSource) Read(ctx context.Context, req tfsdk.Rea
 	}
 
 	data.Key = types.String{Value: variable.Key}
+	data.Id = data.Key
+
 	data.Value = types.String{Value: string(jsonstring)}
 
 	diags = resp.State.Set(ctx, &data)

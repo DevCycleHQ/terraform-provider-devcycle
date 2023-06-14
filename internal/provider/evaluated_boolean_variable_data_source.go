@@ -91,6 +91,7 @@ func (d evaluatedBooleanVariableDataSource) Read(ctx context.Context, req tfsdk.
 	}
 
 	data.Key = types.String{Value: variable.Key}
+	data.Id = data.Key
 	data.Value = types.Bool{Value: variable.Value.(bool)}
 
 	diags = resp.State.Set(ctx, &data)

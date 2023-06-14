@@ -92,6 +92,7 @@ func (d evaluatedNumberVariableDataSource) Read(ctx context.Context, req tfsdk.R
 	}
 
 	data.Key = types.String{Value: variable.Key}
+	data.Id = data.Key
 	data.Value = types.Number{Value: big.NewFloat(variable.Value.(float64))}
 
 	diags = resp.State.Set(ctx, &data)
