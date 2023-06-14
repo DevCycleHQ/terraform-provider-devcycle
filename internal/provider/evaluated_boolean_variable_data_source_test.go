@@ -37,14 +37,14 @@ func TestAccEvaluatedBooleanFeatureDataSource(t *testing.T) {
 
 const testAccEvaluatedBoolVariableDataSourceConfig = `
 data "devcycle_evaluated_variable_boolean" "test" {
-  id = "acceptance-testing-boolean"
+  key = "acceptance-testing-boolean"
   user = {
 	id = "acceptancetesting"
   }
   default_value = false
 }
 data "devcycle_evaluated_variable_boolean" "test-default" {
-  id = "acceptance-testing-boolean-no-exist"
+  key = "acceptance-testing-boolean-no-exist"
   user = {
 	id = "acceptancetesting"
   }

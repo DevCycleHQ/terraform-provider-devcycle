@@ -24,7 +24,7 @@ func TestAccEvaluatedJSONFeatureDataSource(t *testing.T) {
 
 const testAccEvaluatedJSONVariableDataSourceConfig = `
 data "devcycle_evaluated_variable_json" "test" {
-  id = "acceptance-testing-json"
+  key = "acceptance-testing-json"
   user = {
 	id = "acceptancetesting"
   }
