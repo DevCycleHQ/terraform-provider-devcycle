@@ -28,6 +28,6 @@ data "devcycle_evaluated_variable_json" "test" {
   user = {
 	id = "acceptancetesting"
   }
-  default_value = ""
+  default_value = "[]"
 }
 `

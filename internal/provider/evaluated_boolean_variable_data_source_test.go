@@ -28,7 +28,7 @@ func TestAccEvaluatedBooleanFeatureDataSource(t *testing.T) {
 			{
 				Config: testAccEvaluatedBoolVariableDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.devcycle_evaluated_variable_boolean.test", "value", "false"),
+					resource.TestCheckResourceAttr("data.devcycle_evaluated_variable_boolean.test-default", "value", "false"),
 				),
 			},
 		},
