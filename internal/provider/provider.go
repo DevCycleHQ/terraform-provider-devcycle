@@ -6,11 +6,11 @@ import (
 	"os"
 
 	dvc_mgmt "github.com/devcyclehq/go-mgmt-sdk"
-	dvc_server "github.com/devcyclehq/go-server-sdk"
+	dvc_server "github.com/devcyclehq/go-server-sdk/v2"
+	"github.com/devcyclehq/terraform-provider-devcycle/internal/dvc_oauth"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
 )
 
 var bucketingApiUrl = "https://bucketing-api.devcycle.com"
@@ -89,8 +89,10 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 	config.BasePath = "https://api.devcycle.com"
 	config.UserAgent = "terraform-provider-devcycle"
 	p.MgmtClient = dvc_mgmt.NewAPIClient(config)
-	p.ServerClient = dvc_server.NewDVCClient()
-	p.ServerClient.ChangeBasePath(bucketingApiUrl)
+	p.ServerClient, _ = dvc_server.NewDVCClient(os.Getenv("DEVCYCLE_SERVER_TOKEN"), &dvc_server.DVCOptions{
+		EnableEdgeDB:    true,
+		BucketingAPIURI: bucketingApiUrl,
+	})
 	p.configured = true
 }
 

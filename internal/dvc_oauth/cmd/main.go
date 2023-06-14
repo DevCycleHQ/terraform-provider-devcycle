@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-scaffolding-framework/internal/dvc_oauth"
+	"github.com/devcyclehq/terraform-provider-devcycle/internal/dvc_oauth"
 	"os"
 )
 

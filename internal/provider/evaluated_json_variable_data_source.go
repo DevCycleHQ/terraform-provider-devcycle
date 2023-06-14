@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	dvc_server "github.com/devcyclehq/go-server-sdk"
+	dvc_server "github.com/devcyclehq/go-server-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -29,13 +29,17 @@ func (t evaluatedJSONVariableDataSourceType) GetSchema(ctx context.Context) (tfs
 				Required:            true,
 				Type:                types.StringType,
 			},
-			"id": {
+			"key": {
 				Required:            true,
 				MarkdownDescription: "Variable ID or key. Recommended to use the key when not managing an entire project in Terraform.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
 				Type: types.StringType,
+			},
+			"id": {
+				Computed: true,
+				Type:     types.StringType,
 			},
 		},
 	}, nil
@@ -50,10 +54,11 @@ func (t evaluatedJSONVariableDataSourceType) NewDataSource(ctx context.Context, 
 }
 
 type evaluatedJSONVariableDataSourceData struct {
-	Id           types.String                        `tfsdk:"id"`
+	Key          types.String                        `tfsdk:"key"`
 	Value        types.String                        `tfsdk:"value"`
 	User         evaluatedVariableDataSourceDataUser `tfsdk:"user"`
 	DefaultValue types.String                        `tfsdk:"default_value"`
+	Id           types.String                        `tfsdk:"id"`
 }
 
 type evaluatedJSONVariableDataSource struct {
@@ -76,23 +81,32 @@ func (d evaluatedJSONVariableDataSource) Read(ctx context.Context, req tfsdk.Rea
 		return
 	}
 
-	userData := dvc_server.UserData{
+	userData := dvc_server.DVCUser{
 		UserId: "" + data.User.Id.Value,
 	}
 
-	variable, err := d.provider.ServerClient.DevcycleApi.Variable(d.provider.ServerClientContext, userData, data.Id.Value, data.DefaultValue.Value)
+	defaultValueJSON := []byte(data.DefaultValue.Value)
+	var defaultValue map[string]any
+	err := json.Unmarshal(defaultValueJSON, &defaultValue)
+	if err != nil {
+		resp.Diagnostics.AddError("JSON Serialization Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
+		return
+	}
+	variable, err := d.provider.ServerClient.Variable(userData, data.Key.Value, defaultValue)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
 		return
 	}
 
-	jsonstring, err := json.Marshal(*variable.Value)
+	jsonstring, err := json.Marshal(variable.Value)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
 		return
 	}
 
-	data.Id = types.String{Value: variable.Id}
+	data.Key = types.String{Value: variable.Key}
+	data.Id = data.Key
+
 	data.Value = types.String{Value: string(jsonstring)}
 
 	diags = resp.State.Set(ctx, &data)

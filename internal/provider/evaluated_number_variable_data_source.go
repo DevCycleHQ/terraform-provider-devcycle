@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	dvc_server "github.com/devcyclehq/go-server-sdk"
+	dvc_server "github.com/devcyclehq/go-server-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -29,13 +29,17 @@ func (t evaluatedNumberVariableDataSourceType) GetSchema(ctx context.Context) (t
 				Required:            true,
 				Type:                types.NumberType,
 			},
-			"id": {
+			"key": {
 				Required:            true,
 				MarkdownDescription: "Variable ID or key. Recommended to use the key when not managing an entire project in Terraform.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
 				Type: types.StringType,
+			},
+			"id": {
+				Computed: true,
+				Type:     types.StringType,
 			},
 		},
 	}, nil
@@ -50,10 +54,11 @@ func (t evaluatedNumberVariableDataSourceType) NewDataSource(ctx context.Context
 }
 
 type evaluatedNumberVariableDataSourceData struct {
-	Id           types.String                        `tfsdk:"id"`
+	Key          types.String                        `tfsdk:"key"`
 	Value        types.Number                        `tfsdk:"value"`
 	User         evaluatedVariableDataSourceDataUser `tfsdk:"user"`
 	DefaultValue types.Number                        `tfsdk:"default_value"`
+	Id           types.String                        `tfsdk:"id"`
 }
 
 type evaluatedNumberVariableDataSource struct {
@@ -76,18 +81,19 @@ func (d evaluatedNumberVariableDataSource) Read(ctx context.Context, req tfsdk.R
 		return
 	}
 
-	userData := dvc_server.UserData{
+	userData := dvc_server.DVCUser{
 		UserId: "" + data.User.Id.Value,
 	}
-
-	variable, err := d.provider.ServerClient.DevcycleApi.Variable(d.provider.ServerClientContext, userData, data.Id.Value, data.DefaultValue.Value)
+	defaultValue, _ := data.DefaultValue.Value.Float64()
+	variable, err := d.provider.ServerClient.Variable(userData, data.Key.Value, defaultValue)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
 		return
 	}
 
-	data.Id = types.String{Value: variable.Id}
-	data.Value = types.Number{Value: big.NewFloat((*variable.Value).(float64))}
+	data.Key = types.String{Value: variable.Key}
+	data.Id = data.Key
+	data.Value = types.Number{Value: big.NewFloat(variable.Value.(float64))}
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)

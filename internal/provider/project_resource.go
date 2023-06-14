@@ -37,7 +37,7 @@ func (t projectResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 			},
 			"id": {
 				Computed:            true,
-				MarkdownDescription: "Project Id",
+				MarkdownDescription: "Project Key",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},

@@ -21,7 +21,7 @@ func (t projectDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 				Type:                types.StringType,
 			},
 			"id": {
-				MarkdownDescription: "Project Id",
+				MarkdownDescription: "Project Key",
 				Optional:            true,
 				Type:                types.StringType,
 				PlanModifiers: tfsdk.AttributePlanModifiers{

@@ -24,7 +24,7 @@ func TestAccEvaluatedStringFeatureDataSource(t *testing.T) {
 
 const testAccEvaluatedStringVariableDataSourceConfig = `
 data "devcycle_evaluated_variable_string" "test" {
-  id = "acceptance-testing-string"
+  key = "acceptance-testing-string"
   user = {
 	id = "acceptancetesting"
   }

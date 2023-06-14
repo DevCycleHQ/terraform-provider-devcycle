@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	dvc_server "github.com/devcyclehq/go-server-sdk"
+	dvc_server "github.com/devcyclehq/go-server-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -28,13 +28,17 @@ func (t evaluatedBoolVariableDataSourceType) GetSchema(ctx context.Context) (tfs
 				Required:            true,
 				Type:                types.BoolType,
 			},
-			"id": {
+			"key": {
 				Required:            true,
 				MarkdownDescription: "Variable ID or key. Recommended to use the key when not managing an entire project in Terraform.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
 				Type: types.StringType,
+			},
+			"id": {
+				Computed: true,
+				Type:     types.StringType,
 			},
 		},
 	}, nil
@@ -49,10 +53,11 @@ func (t evaluatedBoolVariableDataSourceType) NewDataSource(ctx context.Context, 
 }
 
 type evaluatedBooleanVariableDataSourceData struct {
-	Id           types.String                        `tfsdk:"id"`
+	Key          types.String                        `tfsdk:"key"`
 	Value        types.Bool                          `tfsdk:"value"`
 	User         evaluatedVariableDataSourceDataUser `tfsdk:"user"`
 	DefaultValue types.Bool                          `tfsdk:"default_value"`
+	Id           types.String                        `tfsdk:"id"`
 }
 
 type evaluatedBooleanVariableDataSource struct {
@@ -75,18 +80,19 @@ func (d evaluatedBooleanVariableDataSource) Read(ctx context.Context, req tfsdk.
 		return
 	}
 
-	userData := dvc_server.UserData{
+	userData := dvc_server.DVCUser{
 		UserId: "" + data.User.Id.Value,
 	}
 
-	variable, err := d.provider.ServerClient.DevcycleApi.Variable(d.provider.ServerClientContext, userData, data.Id.Value, data.DefaultValue.Value)
+	variable, err := d.provider.ServerClient.Variable(userData, data.Key.Value, data.DefaultValue.Value)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Variable, got error: %s", err))
 		return
 	}
 
-	data.Id = types.String{Value: variable.Id}
-	data.Value = types.Bool{Value: (*variable.Value).(bool)}
+	data.Key = types.String{Value: variable.Key}
+	data.Id = data.Key
+	data.Value = types.Bool{Value: variable.Value.(bool)}
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
