@@ -70,18 +70,3 @@ jobs:
           # GitHub sets the GITHUB_TOKEN secret automatically.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
-
-      - uses: DevCycleHQ/release-action/create-release@main
-        id: create-release
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.prepare-release.outputs.next-release-tag }}
-          target: main
-          prerelease: ${{ github.event.inputs.prerelease }}
-          draft: ${{ github.event.inputs.draft }}
-          changelog: ${{ steps.prepare-release.outputs.changelog }}
-
-      - name: Display link to release
-        run: |
-          echo "::notice title=Release ID::${{ steps.create-release.outputs.release-id }}"
-          echo "::notice title=Release URL::${{ steps.create-release.outputs.release-url }}"
