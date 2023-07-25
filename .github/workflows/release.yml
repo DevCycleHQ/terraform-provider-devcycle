@@ -2,31 +2,9 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      prerelease:
-        description: "Prerelease"
-        required: true
-        default: false
-        type: boolean
-      draft:
-        description: "Draft"
-        required: true
-        default: false
-        type: boolean
-      version-increment-type:
-        description: 'Which part of the version to increment:'
-        required: true
-        type: choice
-        options:
-          - major
-          - minor
-          - patch
-        default: 'patch'
 
 permissions:
   contents: write
-  # packages: write
-  # issues: write
 
 jobs:
   release:
@@ -37,14 +15,6 @@ jobs:
         with:
           token: ${{ secrets.AUTOMATION_USER_TOKEN }}
           fetch-depth: 0
-
-      - uses: DevCycleHQ/release-action/prepare-release@main
-        id: prepare-release
-        with:
-          github-token: ${{ secrets.AUTOMATION_USER_TOKEN }}
-          prerelease: ${{ github.event.inputs.prerelease }}
-          draft: ${{ github.event.inputs.draft }}
-          version-increment-type: ${{ github.event.inputs.version-increment-type }}
 
       - uses: actions/setup-go@v4
         with:
