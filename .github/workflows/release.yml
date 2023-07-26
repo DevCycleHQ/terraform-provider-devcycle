@@ -1,36 +1,26 @@
-# Terraform Provider release workflow.
 name: Release
 
-# This GitHub action creates a release when a tag that matches the pattern
-# "v*" (e.g. v0.1.0) is created.
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
-# Releases need permissions to read and write the repository contents.
-# GitHub considers creating releases and uploading assets as writing contents.
 permissions:
   contents: write
 
-# Default values to simplify job configurations below.
-env:
-  # Go language version to use for building. This value should also be updated
-  # in the testing workflow if changed.
-  GO_VERSION: '1.19'
-
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
     steps:
+      # Check out the repo with credentials that can bypass branch protection, and fetch git history instead of just latest commit
       - uses: actions/checkout@v3
         with:
-          # Allow goreleaser to access older tag information.
+          token: ${{ secrets.AUTOMATION_USER_TOKEN }}
           fetch-depth: 0
-      - uses: actions/setup-go@v3
+
+      - uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
-      # This uses an action (crazy-max/ghaction-import-gpg) that assumes you set your 
+
+      # This uses an action (crazy-max/ghaction-import-gpg) that assumes you set your
       # private key in the `GPG_PRIVATE_KEY` secret and passphrase in the `PASSPHRASE`
       # secret. If you would rather own your own GPG handling, please fork this action
       # or use an alternative one for key handling.
@@ -41,6 +31,7 @@ jobs:
           # These secrets will need to be configured for the repository:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4.2.0
         with:
