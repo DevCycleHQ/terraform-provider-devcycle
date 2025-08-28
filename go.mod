@@ -1,8 +1,7 @@
 module github.com/devcyclehq/terraform-provider-devcycle
 
-go 1.23.0
-
-toolchain go1.24.6
+go 1.19
+toolchain go1.24.1
 
 require (
 	github.com/devcyclehq/go-mgmt-sdk v0.1.0
