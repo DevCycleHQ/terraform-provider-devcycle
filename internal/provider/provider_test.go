@@ -23,7 +23,9 @@ var randString = ""
 
 func testAccPreCheck(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
-	randString = randSeq(5)
+	// Longer suffix reduces collisions; must be set before building acceptance test configs
+	// (package-level config strings are evaluated after PreCheck when using config functions).
+	randString = randSeq(8)
 	t.Setenv("DEVCYCLE_CLIENT_ID", os.Getenv("DEVCYCLE_CLIENT_ID"))
 	t.Setenv("DEVCYCLE_CLIENT_SECRET", os.Getenv("DEVCYCLE_CLIENT_SECRET"))
 	t.Setenv("DEVCYCLE_ACCESS_TOKEN", os.Getenv("DEVCYCLE_ACCESS_TOKEN"))
