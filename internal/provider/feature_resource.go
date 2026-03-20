@@ -474,12 +474,8 @@ func (r featureResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 		return
 	}
 
-	for _, variable := range data.Variables {
-		httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, variable.Id.Value, data.ProjectId.Value)
-		if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
-			return
-		}
-	}
+	// Delete the feature only; child variables are removed by the API. Deleting
+	// variables by ID first returned 412 Precondition Failed against the live API.
 	httpResponse, err := r.provider.MgmtClient.FeaturesApi.FeaturesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
 	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
 		return
