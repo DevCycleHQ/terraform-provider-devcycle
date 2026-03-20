@@ -3,6 +3,10 @@ name: Release
 on:
   workflow_dispatch:
 
+env:
+  # Must match go.mod / toolchain.
+  GO_VERSION: '1.24.1'
+
 permissions:
   contents: write
 

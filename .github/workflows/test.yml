@@ -16,8 +16,8 @@ permissions:
 # Default values to simplify job configurations below.
 env:
   # Go language version to use for building. This value should also be updated
-  # in the release workflow if changed.
-  GO_VERSION: '1.19'
+  # in the release workflow if changed. Must match go.mod / toolchain.
+  GO_VERSION: '1.24.1'
 
 jobs:
   # Ensure project builds before running testing matrix
