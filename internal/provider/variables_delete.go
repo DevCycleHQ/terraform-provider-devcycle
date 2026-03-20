@@ -6,65 +6,47 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
+	devcyclem "github.com/devcyclehq/go-mgmt-sdk"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-const mgmtAPIBaseURL = "https://api.devcycle.com"
-
-func (p *provider) setMgmtRequestHeaders(req *http.Request) {
-	req.Header.Set("Authorization", p.AccessToken)
-	req.Header.Set("dvc-referrer", "terraform")
-	metadata := fmt.Sprintf(`{"dvc_terraform_provider_version": %q, "terraform_version": %q}`, p.version, "unknown")
-	req.Header.Set("dvc-referrer-metadata", metadata)
-	req.Header.Set("User-Agent", "terraform-provider-devcycle")
-}
-
-// variablesControllerDelete removes a variable. The Management API may require
-// If-Match with the latest ETag; the generated SDK delete method does not send it.
 func (p *provider) variablesControllerDelete(ctx context.Context, key, projectID string, diags *diag.Diagnostics) bool {
-	_, httpResp, err := p.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, key, projectID)
-	if err != nil {
-		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error reading variable before delete: %v", err))
-		return true
+	variable, httpResp, err := p.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, key, projectID)
+	if httpResp != nil && httpResp.Body != nil {
+		_, _ = io.Copy(io.Discard, httpResp.Body)
+		_ = httpResp.Body.Close()
 	}
-
-	if httpResp.StatusCode == http.StatusNotFound {
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 		return false
 	}
-
-	if httpResp.StatusCode < 200 || httpResp.StatusCode > 299 {
-		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: variable read returned %s", httpResp.Status))
+	if ret := handleDevCycleHTTP(err, httpResp, diags); ret {
 		return true
 	}
 
-	etag := httpResp.Header.Get("ETag")
-	if etag == "" {
-		httpResp2, err := p.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, key, projectID)
-		if ret := handleDevCycleHTTP(err, httpResp2, diags); ret {
+	if variable.Feature != "" {
+		if ret := p.detachVariableFromFeature(ctx, variable, projectID, diags); ret {
 			return true
 		}
-		if httpResp2 != nil && httpResp2.Body != nil {
-			_, _ = io.Copy(io.Discard, httpResp2.Body)
-			_ = httpResp2.Body.Close()
+
+		variable, httpResp, err = p.waitForDetachedVariable(ctx, key, projectID)
+		if httpResp != nil && httpResp.Body != nil {
+			_, _ = io.Copy(io.Discard, httpResp.Body)
+			_ = httpResp.Body.Close()
 		}
-		return false
+		if ret := handleDevCycleHTTP(err, httpResp, diags); ret {
+			return true
+		}
+		if variable.Feature != "" {
+			diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: variable %q is still associated with feature %q after detach", key, variable.Feature))
+			return true
+		}
 	}
 
-	u := fmt.Sprintf("%s/v1/projects/%s/variables/%s",
-		mgmtAPIBaseURL,
-		url.PathEscape(projectID),
-		url.PathEscape(key),
-	)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, u, nil)
-	if err != nil {
-		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error building delete request: %v", err))
-		return true
-	}
-	p.setMgmtRequestHeaders(req)
-	req.Header.Set("If-Match", etag)
-
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := p.doMgmtRequest(ctx, http.MethodDelete, fmt.Sprintf("/v1/projects/%s/variables/%s", projectID, key), nil, map[string]string{
+		"If-Match": "*",
+	})
 	if err != nil {
 		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error deleting variable: %v", err))
 		return true
@@ -73,12 +55,117 @@ func (p *provider) variablesControllerDelete(ctx context.Context, key, projectID
 		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 	}
-
 	if resp.StatusCode == http.StatusNotFound {
 		return false
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: %s.\nHTTP Response: %v", resp.Status, req))
+		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: %s.\nHTTP Response: %v", resp.Status, resp.Request))
+		return true
+	}
+
+	return false
+}
+
+func (p *provider) waitForDetachedVariable(ctx context.Context, key, projectID string) (devcyclem.Variable, *http.Response, error) {
+	for attempt := 0; attempt < 5; attempt++ {
+		variable, httpResp, err := p.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, key, projectID)
+		if err != nil || httpResp == nil || httpResp.StatusCode == http.StatusNotFound || variable.Feature == "" {
+			return variable, httpResp, err
+		}
+		if httpResp.Body != nil {
+			_, _ = io.Copy(io.Discard, httpResp.Body)
+			_ = httpResp.Body.Close()
+		}
+		time.Sleep(time.Duration(attempt+1) * 300 * time.Millisecond)
+	}
+
+	return p.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, key, projectID)
+}
+
+func (p *provider) detachVariableFromFeature(ctx context.Context, variable devcyclem.Variable, projectID string, diags *diag.Diagnostics) bool {
+	feature, httpResp, err := p.MgmtClient.FeaturesApi.FeaturesControllerFindOne(ctx, variable.Feature, projectID)
+	if httpResp != nil && httpResp.Body != nil {
+		_, _ = io.Copy(io.Discard, httpResp.Body)
+		_ = httpResp.Body.Close()
+	}
+	if ret := handleDevCycleHTTP(err, httpResp, diags); ret {
+		return true
+	}
+
+	update := devcyclem.UpdateFeatureDto{
+		Name:        feature.Name,
+		Key:         feature.Key,
+		Description: feature.Description,
+		Type_:       feature.Type_,
+		Tags:        feature.Tags,
+	}
+
+	removed := false
+	for _, existingVariable := range feature.Variables {
+		if existingVariable.Key == variable.Key {
+			removed = true
+			continue
+		}
+
+		update.Variables = append(update.Variables, devcyclem.CreateVariableDto{
+			Name:         existingVariable.Name,
+			Description:  existingVariable.Description,
+			Key:          existingVariable.Key,
+			Feature:      feature.Key,
+			Type_:        existingVariable.Type_,
+			DefaultValue: existingVariable.DefaultValue,
+		})
+	}
+
+	if !removed {
+		return false
+	}
+
+	for _, variation := range feature.Variations {
+		nextVariables := make(map[string]interface{}, len(variation.Variables))
+		for variationKey, variationValue := range variation.Variables {
+			if variationKey == variable.Key {
+				continue
+			}
+			nextVariables[variationKey] = variationValue
+		}
+
+		update.Variations = append(update.Variations, devcyclem.FeatureVariationDto{
+			Key:       variation.Key,
+			Name:      variation.Name,
+			Variables: nextVariables,
+		})
+	}
+
+	_, httpResp, err = p.MgmtClient.FeaturesApi.FeaturesControllerUpdate(ctx, update, feature.Key, projectID)
+	if httpResp != nil && httpResp.Body != nil {
+		_, _ = io.Copy(io.Discard, httpResp.Body)
+		_ = httpResp.Body.Close()
+	}
+	if ret := handleDevCycleHTTP(err, httpResp, diags); ret {
+		return true
+	}
+
+	return false
+}
+
+func (p *provider) featureControllerDelete(ctx context.Context, key, projectID string, diags *diag.Diagnostics) bool {
+	resp, err := p.doMgmtRequest(ctx, http.MethodDelete, fmt.Sprintf("/v1/projects/%s/features/%s", projectID, key), url.Values{
+		"deleteVariables": {"true"},
+	}, nil)
+	if err != nil {
+		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error deleting feature: %v", err))
+		return true
+	}
+	if resp.Body != nil {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		return false
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: %s.\nHTTP Response: %v", resp.Status, resp.Request))
 		return true
 	}
 
