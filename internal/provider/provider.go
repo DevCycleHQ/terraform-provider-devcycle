@@ -24,6 +24,7 @@ type provider struct {
 	ServerClient        *dvc_server.DVCClient
 	AccessToken         string
 	ServerClientContext context.Context
+	TerraformVersion    string
 
 	// configured is set to true at the end of the Configure method.
 	// This can be used in Resource and DataSource implementations to verify
@@ -92,6 +93,7 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 	config.AddDefaultHeader("dvc-referrer-metadata", metadata)
 	config.BasePath = "https://api.devcycle.com"
 	config.UserAgent = "terraform-provider-devcycle"
+	p.TerraformVersion = req.TerraformVersion
 	p.MgmtHTTPClient = mgmtHTTPClient
 	p.MgmtClient = dvc_mgmt.NewAPIClient(config)
 	p.ServerClient, _ = dvc_server.NewDVCClient(os.Getenv("DEVCYCLE_SERVER_TOKEN"), &dvc_server.DVCOptions{
