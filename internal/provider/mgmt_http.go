@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,7 +37,7 @@ func (t retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		cloned.Header = req.Header.Clone()
 
 		resp, err = base.RoundTrip(cloned)
-		if !shouldRetryMgmtRequest(req.Method, resp, err) || attempt == 2 {
+		if !shouldRetryMgmtRequest(req, resp, err) || attempt == 2 {
 			return resp, err
 		}
 
@@ -45,20 +46,29 @@ func (t retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			_ = resp.Body.Close()
 		}
 
-		time.Sleep(time.Duration(attempt+1) * 500 * time.Millisecond)
+		if err := sleepWithContext(req.Context(), time.Duration(attempt+1)*500*time.Millisecond); err != nil {
+			return nil, err
+		}
 	}
 
 	return resp, err
 }
 
-func shouldRetryMgmtRequest(method string, resp *http.Response, err error) bool {
-	switch method {
+func shouldRetryMgmtRequest(req *http.Request, resp *http.Response, err error) bool {
+	switch req.Method {
 	case http.MethodGet, http.MethodDelete, http.MethodHead:
 	default:
 		return false
 	}
 
+	if req.Context().Err() != nil {
+		return false
+	}
+
 	if err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return false
+		}
 		return true
 	}
 
@@ -67,17 +77,33 @@ func shouldRetryMgmtRequest(method string, resp *http.Response, err error) bool 
 	}
 
 	switch resp.StatusCode {
-	case http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
 		return true
 	default:
 		return false
 	}
 }
 
+func sleepWithContext(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
 func (p *provider) setMgmtRequestHeaders(req *http.Request) {
 	req.Header.Set("Authorization", p.AccessToken)
 	req.Header.Set("dvc-referrer", "terraform")
-	metadata := fmt.Sprintf(`{"dvc_terraform_provider_version": %q, "terraform_version": %q}`, p.version, "unknown")
+	terraformVersion := p.TerraformVersion
+	if terraformVersion == "" {
+		terraformVersion = "unknown"
+	}
+	metadata := fmt.Sprintf(`{"dvc_terraform_provider_version": %q, "terraform_version": %q}`, p.version, terraformVersion)
 	req.Header.Set("dvc-referrer-metadata", metadata)
 	req.Header.Set("User-Agent", "terraform-provider-devcycle")
 }

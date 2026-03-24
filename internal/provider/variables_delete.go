@@ -44,7 +44,9 @@ func (p *provider) variablesControllerDelete(ctx context.Context, key, projectID
 		}
 	}
 
-	resp, err := p.doMgmtRequest(ctx, http.MethodDelete, fmt.Sprintf("/v1/projects/%s/variables/%s", projectID, key), nil, map[string]string{
+	escapedProjectID := url.PathEscape(projectID)
+	escapedKey := url.PathEscape(key)
+	resp, err := p.doMgmtRequest(ctx, http.MethodDelete, fmt.Sprintf("/v1/projects/%s/variables/%s", escapedProjectID, escapedKey), nil, map[string]string{
 		"If-Match": "*",
 	})
 	if err != nil {
@@ -59,7 +61,7 @@ func (p *provider) variablesControllerDelete(ctx context.Context, key, projectID
 		return false
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: %s.\nHTTP Response: %v", resp.Status, resp.Request))
+		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: %s.\nRequest URL: %s", resp.Status, responseURL(resp)))
 		return true
 	}
 
@@ -76,7 +78,10 @@ func (p *provider) waitForDetachedVariable(ctx context.Context, key, projectID s
 			_, _ = io.Copy(io.Discard, httpResp.Body)
 			_ = httpResp.Body.Close()
 		}
-		time.Sleep(time.Duration(attempt+1) * 300 * time.Millisecond)
+		if err := sleepWithContext(ctx, time.Duration(attempt+1)*300*time.Millisecond); err != nil {
+			var zero devcyclem.Variable
+			return zero, nil, err
+		}
 	}
 
 	return p.MgmtClient.VariablesApi.VariablesControllerFindOne(ctx, key, projectID)
@@ -150,7 +155,9 @@ func (p *provider) detachVariableFromFeature(ctx context.Context, variable devcy
 }
 
 func (p *provider) featureControllerDelete(ctx context.Context, key, projectID string, diags *diag.Diagnostics) bool {
-	resp, err := p.doMgmtRequest(ctx, http.MethodDelete, fmt.Sprintf("/v1/projects/%s/features/%s", projectID, key), url.Values{
+	escapedProjectID := url.PathEscape(projectID)
+	escapedKey := url.PathEscape(key)
+	resp, err := p.doMgmtRequest(ctx, http.MethodDelete, fmt.Sprintf("/v1/projects/%s/features/%s", escapedProjectID, escapedKey), url.Values{
 		"deleteVariables": {"true"},
 	}, nil)
 	if err != nil {
@@ -165,9 +172,16 @@ func (p *provider) featureControllerDelete(ctx context.Context, key, projectID s
 		return false
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: %s.\nHTTP Response: %v", resp.Status, resp.Request))
+		diags.AddError("Client Error", fmt.Sprintf("DevCycle Terraform Error: %s.\nRequest URL: %s", resp.Status, responseURL(resp)))
 		return true
 	}
 
 	return false
+}
+
+func responseURL(resp *http.Response) string {
+	if resp != nil && resp.Request != nil && resp.Request.URL != nil {
+		return resp.Request.URL.String()
+	}
+	return "<unknown>"
 }
