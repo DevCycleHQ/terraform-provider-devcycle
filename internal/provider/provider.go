@@ -89,7 +89,11 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 	config.HTTPClient = mgmtHTTPClient
 	config.AddDefaultHeader("Authorization", p.AccessToken)
 	config.AddDefaultHeader("dvc-referrer", "terraform")
-	metadata := fmt.Sprintf("{\"dvc_terraform_provider_version\": \"%s\", \"terraform_version\": \"%s\"}", p.version, req.TerraformVersion)
+	terraformVersion := req.TerraformVersion
+	if terraformVersion == "" {
+		terraformVersion = "unknown"
+	}
+	metadata := fmt.Sprintf(`{"dvc_terraform_provider_version": %q, "terraform_version": %q}`, p.version, terraformVersion)
 	config.AddDefaultHeader("dvc-referrer-metadata", metadata)
 	config.BasePath = "https://api.devcycle.com"
 	config.UserAgent = "terraform-provider-devcycle"
