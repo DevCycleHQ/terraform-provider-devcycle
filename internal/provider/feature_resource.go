@@ -474,14 +474,8 @@ func (r featureResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 		return
 	}
 
-	for _, variable := range data.Variables {
-		httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, variable.Id.Value, data.ProjectId.Value)
-		if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
-			return
-		}
-	}
-	httpResponse, err := r.provider.MgmtClient.FeaturesApi.FeaturesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
-	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
+	// Ask the API to delete associated variables along with the feature.
+	if ret := r.provider.featureControllerDelete(ctx, data.Key.Value, data.ProjectId.Value, &resp.Diagnostics); ret {
 		return
 	}
 
