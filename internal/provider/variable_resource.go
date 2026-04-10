@@ -218,8 +218,7 @@ func (r variableResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRe
 		return
 	}
 
-	httpResponse, err := r.provider.MgmtClient.VariablesApi.VariablesControllerRemove(ctx, data.Key.Value, data.ProjectId.Value)
-	if ret := handleDevCycleHTTP(err, httpResponse, &resp.Diagnostics); ret {
+	if ret := r.provider.variablesControllerDelete(ctx, data.Key.Value, data.ProjectId.Value, &resp.Diagnostics); ret {
 		return
 	}
 

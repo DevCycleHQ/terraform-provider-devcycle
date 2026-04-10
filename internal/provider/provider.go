@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
 	dvc_mgmt "github.com/devcyclehq/go-mgmt-sdk"
@@ -19,9 +20,11 @@ var bucketingApiUrl = "https://bucketing-api.devcycle.com"
 // with all Resource and DataSource implementations.
 type provider struct {
 	MgmtClient          *dvc_mgmt.DVCClient
+	MgmtHTTPClient      *http.Client
 	ServerClient        *dvc_server.DVCClient
 	AccessToken         string
 	ServerClientContext context.Context
+	TerraformVersion    string
 
 	// configured is set to true at the end of the Configure method.
 	// This can be used in Resource and DataSource implementations to verify
@@ -81,13 +84,21 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 		})
 	}
 
+	mgmtHTTPClient := newMgmtHTTPClient()
 	config := dvc_mgmt.NewConfiguration()
+	config.HTTPClient = mgmtHTTPClient
 	config.AddDefaultHeader("Authorization", p.AccessToken)
 	config.AddDefaultHeader("dvc-referrer", "terraform")
-	metadata := fmt.Sprintf("{\"dvc_terraform_provider_version\": \"%s\", \"terraform_version\": \"%s\"}", p.version, req.TerraformVersion)
+	terraformVersion := req.TerraformVersion
+	if terraformVersion == "" {
+		terraformVersion = "unknown"
+	}
+	metadata := fmt.Sprintf(`{"dvc_terraform_provider_version": %q, "terraform_version": %q}`, p.version, terraformVersion)
 	config.AddDefaultHeader("dvc-referrer-metadata", metadata)
 	config.BasePath = "https://api.devcycle.com"
 	config.UserAgent = "terraform-provider-devcycle"
+	p.TerraformVersion = req.TerraformVersion
+	p.MgmtHTTPClient = mgmtHTTPClient
 	p.MgmtClient = dvc_mgmt.NewAPIClient(config)
 	p.ServerClient, _ = dvc_server.NewDVCClient(os.Getenv("DEVCYCLE_SERVER_TOKEN"), &dvc_server.DVCOptions{
 		EnableEdgeDB:    true,

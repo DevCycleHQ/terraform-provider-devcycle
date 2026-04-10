@@ -3,6 +3,10 @@ name: Release
 on:
   workflow_dispatch:
 
+env:
+  # Must match go.mod / toolchain.
+  GO_VERSION: '1.24.1'
+
 permissions:
   contents: write
 
@@ -11,12 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Check out the repo with credentials that can bypass branch protection, and fetch git history instead of just latest commit
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
         with:
           token: ${{ secrets.AUTOMATION_USER_TOKEN }}
           fetch-depth: 0
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
 

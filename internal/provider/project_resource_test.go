@@ -7,46 +7,53 @@ import (
 )
 
 func TestAccProjectResource(t *testing.T) {
+	testAccPreCheck(t)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 nil,
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccProjectResourceConfig,
+				Config: testAccProjectResourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("devcycle_project.test", "key", testAccProjectResourceKey),
+					resource.TestCheckResourceAttr("devcycle_project.test", "key", testAccProjectResourceKey()),
 					resource.TestCheckResourceAttr("devcycle_project.test", "description", "Terraform acceptance testing"),
 				),
 			},
 			{
-				Config: testAccProjectResourceConfigEdit,
+				Config: testAccProjectResourceConfigEdit(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("devcycle_project.test", "description", "Terraform acceptance testing-edit"),
 				),
 			},
 			{
-				Config:  testAccProjectResourceConfig,
+				Config:  testAccProjectResourceConfig(),
 				Destroy: true,
 			},
 		},
 	})
 }
 
-var testAccProjectResourceKey = "terraform-acceptance-testing" + randString
+func testAccProjectResourceKey() string {
+	return "terraform-acceptance-testing" + randString
+}
 
-var testAccProjectResourceConfig = `
+func testAccProjectResourceConfig() string {
+	return `
 resource "devcycle_project" "test" {
   name = "TerraformAccTest` + randString + `"
-  key = "` + testAccProjectResourceKey + `"
+  key = "` + testAccProjectResourceKey() + `"
   description = "Terraform acceptance testing"
 }
 `
+}
 
-var testAccProjectResourceConfigEdit = `
+func testAccProjectResourceConfigEdit() string {
+	return `
 resource "devcycle_project" "test" {
   name = "TerraformAccTest` + randString + `"
-  key = "` + testAccProjectResourceKey + `"
+  key = "` + testAccProjectResourceKey() + `"
   description = "Terraform acceptance testing-edit"
 }
 `
+}
