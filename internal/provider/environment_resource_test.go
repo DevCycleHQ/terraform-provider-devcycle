@@ -7,30 +7,32 @@ import (
 )
 
 func TestAccEnvironmentResource(t *testing.T) {
+	testAccPreCheck(t)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 nil,
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccEnvironmentResourceConfig,
+				Config: testAccEnvironmentResourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("devcycle_environment.test", "project_id", "622112634cabe0e9fbaf974d"),
 				),
 			},
 			{
-				Config:  testAccEnvironmentResourceConfig,
+				Config:  testAccEnvironmentResourceConfig(),
 				Destroy: true,
 			},
 		},
 	})
 }
 
-var testAccEnvironmentResourceConfig = `
+func testAccEnvironmentResourceConfig() string {
+	return `
 resource "devcycle_environment" "test" {
   project_id = "622112634cabe0e9fbaf974d"
-  name = "TerraformAccTest` + randSeq(5) + `"
-  key = "terraform-acceptance-testing` + randSeq(5) + `"
+  name = "TerraformAccTest` + randString + `"
+  key = "terraform-acceptance-testing` + randString + `"
   description = "Terraform acceptance testing"
   color = "#232323"
   type = "development"
@@ -39,3 +41,4 @@ resource "devcycle_environment" "test" {
   }
 }
 `
+}

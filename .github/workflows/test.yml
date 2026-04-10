@@ -16,8 +16,8 @@ permissions:
 # Default values to simplify job configurations below.
 env:
   # Go language version to use for building. This value should also be updated
-  # in the release workflow if changed.
-  GO_VERSION: '1.19'
+  # in the release workflow if changed. Must match go.mod / toolchain.
+  GO_VERSION: '1.24.1'
 
 jobs:
   # Ensure project builds before running testing matrix
@@ -29,7 +29,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - run: go mod download
       - run: go build -v .
 
@@ -55,7 +55,7 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - run: go mod download
       - env:
           TF_ACC: "1"

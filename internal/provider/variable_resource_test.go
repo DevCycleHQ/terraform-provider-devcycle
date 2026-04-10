@@ -7,34 +7,39 @@ import (
 )
 
 func TestAccVariableResource(t *testing.T) {
+	testAccPreCheck(t)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 nil,
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccVariableResourceConfig,
+				Config: testAccVariableResourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("devcycle_variable.test", "key", testAccVariableResourceKey),
+					resource.TestCheckResourceAttr("devcycle_variable.test", "key", testAccVariableResourceKey()),
 				),
 			},
 			{
-				Config:  testAccVariableResourceConfig,
+				Config:  testAccVariableResourceConfig(),
 				Destroy: true,
 			},
 		},
 	})
 }
 
-var testAccVariableResourceKey = "terraform-acceptance-testing" + randSeq(5)
+func testAccVariableResourceKey() string {
+	return "terraform-acceptance-testing" + randString
+}
 
-var testAccVariableResourceConfig = `
+func testAccVariableResourceConfig() string {
+	return `
 resource "devcycle_variable" "test" {
-  name = "TerraformAccTest` + randSeq(5) + `"
-  key = "` + testAccVariableResourceKey + `"
+  name = "TerraformAccTest` + randString + `"
+  key = "` + testAccVariableResourceKey() + `"
   description = "Terraform acceptance testing"
   type = "Boolean"
   feature_id = "622115014b06357d06d1cf3e"
   project_id = "622112634cabe0e9fbaf974d"
 }
 `
+}
