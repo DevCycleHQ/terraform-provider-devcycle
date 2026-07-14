@@ -17,7 +17,7 @@ permissions:
 env:
   # Go language version to use for building. This value should also be updated
   # in the release workflow if changed. Must match go.mod / toolchain.
-  GO_VERSION: '1.24.1'
+  GO_VERSION: '1.25.0'
 
 jobs:
   # Ensure project builds before running testing matrix
