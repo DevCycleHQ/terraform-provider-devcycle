@@ -30,14 +30,14 @@ jobs:
       # or use an alternative one for key handling.
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v5
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           # These secrets will need to be configured for the repository:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4.2.0
+        uses: goreleaser/goreleaser-action@v7
         with:
           args: release --rm-dist
         env:
